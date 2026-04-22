@@ -1,7 +1,7 @@
 // js/config.js - Supabase 설정 및 공통 함수
 
-const SUPABASE_URL = 'https://gqttpmdpqotrkbdbstuu.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxdHRwbWRwcW90cmtiZGJzdHV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNjU4MjIsImV4cCI6MjA3ODk0MTgyMn0.pR6dL8yU2lpugzYWpdDkQh_l5WcVO4YMlOPhMlCJmP8';
+const SUPABASE_URL = 'https://uqdxgadpzajeioebijht.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxZHhnYWRwemFqZWlvZWJpamh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzgwOTgsImV4cCI6MjA5MjQxNDA5OH0.ftcmdNq9--jFaUuV84yVGIqHprLbtdIDBWFOMX48cs4';
 
 var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
