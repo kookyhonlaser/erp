@@ -451,8 +451,8 @@
             po2_renderHistory();
         };
 
-        function defaultDomestic(){ return {id:'', type:'domestic', po_no:domesticNo(), po_date:today(), delivery_date:today(), writer:'쿠키혼레이저', buyer_name:'쿠키혼레이저', buyer_biz:'000-00-00000', buyer_addr:'경기도 화성시 메타폴리스로 42, 9층 902호', buyer_tel:'031-000-0000', buyer_email:'venic@kooky.co.kr', supplier_name:'', supplier_biz:'', supplier_manager:'', supplier_tel:'', supplier_email:'', supplier_addr:'', delivery_place:'당사 입고', note:'납품 전 담당자에게 연락 바랍니다. 세금계산서는 발주일 기준으로 발행 요청드립니다.', items:[{name:'레이저 보호렌즈', spec:'20mm', qty:10, price:18000},{name:'케이블 세트', spec:'3M', qty:5, price:25000}]}; }
-        function defaultOverseas(){ return {id:'', type:'overseas', po_no:overseasNo(), po_date:today(), delivery_date:today(), currency:'USD', incoterms:'EXW / FOB / CIF', buyer_name:'KOOKYHON LASER', buyer_addr:'9F 902, 42 Metapolis-ro, Hwaseong-si, Gyeonggi-do, Korea', buyer_tel:'+82-31-000-0000', buyer_email:'venic@kooky.co.kr', supplier_name:'', supplier_biz:'', supplier_manager:'', supplier_tel:'', supplier_email:'', supplier_addr:'', destination:'Korea', payment_terms:'T/T in advance or as agreed.', note:'Please confirm availability, lead time, shipping cost, and proforma invoice.', items:[{name:'F-Theta Lens', spec:'1064nm', qty:2, price:180},{name:'Galvo Scanner', spec:'10mm', qty:1, price:850}]}; }
+        function defaultDomestic(){ return {id:'', type:'domestic', po_no:domesticNo(), po_date:today(), delivery_date:today(), writer:'Venic', buyer_name:'쿠키혼 레이저 주식회사 / 전종욱', buyer_biz:'341-88-01043', buyer_addr:'경기도 화성시 송산면 화성로 316-42', buyer_tel:'031-355-3164', buyer_email:'owen@kooky.co.kr', supplier_name:'', supplier_biz:'', supplier_manager:'', supplier_tel:'', supplier_email:'', supplier_addr:'', delivery_place:'당사 입고', note:'납품 전 담당자에게 연락 바랍니다. 세금계산서는 발주일 기준으로 발행 요청드립니다.', items:[{name:'레이저 보호렌즈', spec:'20mm', qty:10, price:18000},{name:'케이블 세트', spec:'3M', qty:5, price:25000}]}; }
+        function defaultOverseas(){ return {id:'', type:'overseas', po_no:overseasNo(), po_date:today(), delivery_date:today(), currency:'USD', incoterms:'UPS SAVER acc\'t no. 20X6A1', buyer_name:'Kooky Hon Laser. Limited.', buyer_addr:'316-42, Hwaseong-ro, Songsan-Myeon, Hwaseong-si, Gyonggi-do, Korea 18552', buyer_tel:'+82 31 355 3164', buyer_email:'venic@kooky.co.kr', supplier_name:'', supplier_biz:'', supplier_manager:'', supplier_tel:'', supplier_email:'', supplier_addr:'', destination:'Korea', payment_terms:'T/T in advance or as agreed.', note:'Please confirm availability, lead time, shipping cost, and proforma invoice.', items:[{name:'F-Theta Lens', spec:'1064nm', qty:2, price:180},{name:'Galvo Scanner', spec:'10mm', qty:1, price:850}]}; }
 
         window.po2_renderDomestic = function(record){
             try {
@@ -543,10 +543,114 @@
             pc.id = 'printContainer'; pc.classList.remove('hidden'); pc.innerHTML = printHtml(type,d);
             setTimeout(()=>{ window.print(); setTimeout(()=>{ pc.classList.add('hidden'); pc.innerHTML=''; }, 500); }, 100);
         };
+        function po2_dateKo(v){
+            if (!v) return '';
+            const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            return m ? `${m[1]}년 ${m[2]}월 ${m[3]}일` : String(v);
+        }
+        function po2_dateEn(v){
+            if (!v) return '';
+            const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if(!m) return String(v);
+            return `${m[3]}-${months[Number(m[2])-1]}-${m[1]}`;
+        }
+        function po2_moneyKo(n){
+            n = Math.floor(Number(n || 0));
+            if (!n) return '영';
+            const nums=['','일','이','삼','사','오','육','칠','팔','구'];
+            const pos=['','십','백','천'];
+            const units=['','만','억','조'];
+            function part(x){
+                let out='';
+                const str=String(x).padStart(4,'0');
+                for(let i=0;i<4;i++){
+                    const d=Number(str[i]);
+                    if(!d) continue;
+                    const p=3-i;
+                    out += (d===1 && p>0 ? '' : nums[d]) + pos[p];
+                }
+                return out;
+            }
+            const groups=[];
+            while(n>0){ groups.push(n%10000); n=Math.floor(n/10000); }
+            let out='';
+            for(let i=groups.length-1;i>=0;i--){
+                if(groups[i]) out += part(groups[i]) + units[i];
+            }
+            return out;
+        }
+        function po2_rowsDomestic(items){
+            const rows=[...(items||[])];
+            while(rows.length < 12) rows.push({no:rows.length+1,name:'',spec:'',qty:'',price:'',amount:''});
+            return rows.slice(0,12).map((i,idx)=>`<tr><td class="po-center">${i.name ? (i.no || idx+1) : ''}</td><td>${esc(i.name||'')}</td><td>${esc(i.spec||'')}</td><td class="po-num">${i.name ? num(i.qty) : ''}</td><td class="po-num">${i.name ? num(i.price) : ''}</td><td class="po-num">${i.name ? num(i.amount) : ''}</td></tr>`).join('');
+        }
+        function po2_rowsOverseas(items, cur){
+            const rows=[...(items||[])];
+            while(rows.length < 10) rows.push({no:rows.length+1,name:'',spec:'',qty:'',price:'',amount:''});
+            return rows.slice(0,10).map((i,idx)=>`<tr><td class="po-center">${i.name ? (i.no || idx+1) : ''}</td><td>${esc(i.spec||'')}</td><td>${esc(i.name||'')}</td><td class="po-center">${i.name ? 'EA' : ''}</td><td class="po-num">${i.name ? num(i.price) : ''}</td><td class="po-num">${i.name ? num(i.qty) : ''}</td><td class="po-num">${i.name ? num(i.amount) : ''}</td></tr>`).join('');
+        }
         function printHtml(type,d){
-            const style = `<style>@media print{.no-print{display:none!important}#printContainer{display:block!important}.hidden{display:block!important}}.po-page{width:210mm;min-height:297mm;background:white;color:#111827;font-family:'Malgun Gothic',Arial,sans-serif;padding:15mm}.po-brand{font-size:22px;font-weight:900}.po-title{text-align:center;font-size:30px;font-weight:900;letter-spacing:8px;margin:18px 0}.po-title-en{font-size:28px;font-weight:900;border-bottom:3px solid #111827;padding-bottom:8px;margin:14px 0 20px}.po-top{display:flex;justify-content:space-between;gap:16px}.po-table{width:100%;border-collapse:collapse;margin-bottom:12px}.po-table th,.po-table td{border:1px solid #111827;padding:7px;font-size:12px;vertical-align:middle}.po-table th{background:#f3f4f6;font-weight:800}.po-num{text-align:right;white-space:nowrap}.po-center{text-align:center}.po-sum{width:310px;margin-left:auto}.po-sum .total th,.po-sum .total td{background:#111827;color:white;font-size:14px}.po-note{border:1px solid #111827;min-height:70px;padding:10px;font-size:12px;margin-top:14px}.po-sign{text-align:right;font-size:16px;font-weight:900;margin-top:24px}.muted{font-size:12px;font-weight:400;color:#4b5563}</style>`;
-            if (type === 'domestic') return `${style}<div class="po-page"><div class="po-top"><div class="po-brand">KOOKYHON LASER<br><span class="muted">레이저 마킹기 · 자동화 장비 · 부품</span></div><table class="po-table" style="width:285px"><tr><th>발주번호</th><td>${esc(d.po_no)}</td></tr><tr><th>발주일자</th><td>${esc(d.po_date)}</td></tr><tr><th>작성자</th><td>${esc(d.writer)}</td></tr></table></div><div class="po-title">발 주 서</div><table class="po-table"><tr><th style="width:90px">발주처</th><td>${esc(d.buyer_name)}</td><th style="width:100px">공급처</th><td>${esc(d.supplier_name)}</td></tr><tr><th>사업자번호</th><td>${esc(d.buyer_biz)}</td><th>사업자번호</th><td>${esc(d.supplier_biz)}</td></tr><tr><th>주소</th><td>${esc(d.buyer_addr)}</td><th>공급처 주소</th><td>${esc(d.supplier_addr)}</td></tr><tr><th>연락처</th><td>${esc(d.buyer_tel)}</td><th>담당자명</th><td>${esc(d.supplier_manager)}</td></tr><tr><th>E-mail</th><td>${esc(d.buyer_email)}</td><th>담당자 연락처</th><td>${esc(d.supplier_tel)}</td></tr><tr><th>납품장소</th><td>${esc(d.delivery_place)}</td><th>담당자 이메일</th><td>${esc(d.supplier_email)}</td></tr></table><table class="po-table"><thead><tr><th style="width:45px">No</th><th>품목명</th><th style="width:120px">규격</th><th style="width:70px">수량</th><th style="width:100px">단가</th><th style="width:110px">금액</th><th style="width:110px">납기일</th></tr></thead><tbody>${d.items.map(i=>`<tr><td class="po-center">${i.no}</td><td>${esc(i.name)}</td><td class="po-center">${esc(i.spec)}</td><td class="po-num">${num(i.qty)}</td><td class="po-num">${num(i.price)}</td><td class="po-num">${num(i.amount)}</td><td class="po-center">${esc(d.delivery_date)}</td></tr>`).join('')}</tbody></table><table class="po-table po-sum"><tr><th>공급가액</th><td class="po-num">${num(d.subtotal)}</td></tr><tr><th>부가세</th><td class="po-num">${num(d.vat)}</td></tr><tr class="total"><th>합계금액</th><td class="po-num">${num(d.total)}</td></tr></table><div class="po-note"><b>비고</b><br>${esc(d.note).replaceAll('\n','<br>')}</div><div class="po-sign">쿠키혼레이저 귀중</div></div>`;
-            return `${style}<div class="po-page"><div class="po-top"><div class="po-brand">KOOKYHON LASER<br><span class="muted">Laser Marking System · Automation · Parts</span></div><table class="po-table" style="width:285px"><tr><th>PO No.</th><td>${esc(d.po_no)}</td></tr><tr><th>Date</th><td>${esc(d.po_date)}</td></tr><tr><th>Currency</th><td>${esc(d.currency)}</td></tr></table></div><div class="po-title-en">PURCHASE ORDER</div><table class="po-table"><tr><th style="width:100px">Buyer</th><td>${esc(d.buyer_name)}</td><th style="width:110px">Supplier</th><td>${esc(d.supplier_name)}</td></tr><tr><th>Address</th><td>${esc(d.buyer_addr)}</td><th>Business/VAT No.</th><td>${esc(d.supplier_biz)}</td></tr><tr><th>Tel.</th><td>${esc(d.buyer_tel)}</td><th>Supplier Address</th><td>${esc(d.supplier_addr)}</td></tr><tr><th>E-mail</th><td>${esc(d.buyer_email)}</td><th>Contact</th><td>${esc(d.supplier_manager)}</td></tr><tr><th>Incoterms</th><td>${esc(d.incoterms)}</td><th>Tel.</th><td>${esc(d.supplier_tel)}</td></tr><tr><th>Destination</th><td>${esc(d.destination)}</td><th>Email</th><td>${esc(d.supplier_email)}</td></tr></table><table class="po-table"><thead><tr><th style="width:45px">No.</th><th>Description</th><th style="width:120px">Model</th><th style="width:70px">Qty</th><th style="width:110px">Unit Price</th><th style="width:120px">Amount</th><th style="width:110px">Delivery</th></tr></thead><tbody>${d.items.map(i=>`<tr><td class="po-center">${i.no}</td><td>${esc(i.name)}</td><td class="po-center">${esc(i.spec)}</td><td class="po-num">${num(i.qty)}</td><td class="po-num">${esc(d.currency)} ${num(i.price)}</td><td class="po-num">${esc(d.currency)} ${num(i.amount)}</td><td class="po-center">${esc(d.delivery_date)}</td></tr>`).join('')}</tbody></table><table class="po-table po-sum"><tr><th>Subtotal</th><td class="po-num">${esc(d.currency)} ${num(d.subtotal)}</td></tr><tr><th>Shipping</th><td class="po-num">TBD</td></tr><tr class="total"><th>Total</th><td class="po-num">${esc(d.currency)} ${num(d.total)}</td></tr></table><div class="po-note"><b>Payment Terms</b><br>${esc(d.payment_terms)}<br><br><b>Remarks</b><br>${esc(d.note).replaceAll('\n','<br>')}</div><div class="po-sign">Authorized by KOOKYHON LASER</div></div>`;
+            const style = `<style>
+                @page{size:A4;margin:0}
+                @media print{body>*:not(#printContainer){display:none!important}.no-print{display:none!important}#printContainer{display:block!important}.hidden{display:block!important}}
+                #printContainer{background:white!important;color:#111!important}
+                .po-page{width:210mm;min-height:297mm;background:white;color:#111;font-family:'Malgun Gothic','Arial',sans-serif;padding:12mm;box-sizing:border-box;line-height:1.25}
+                .po-logo{font-size:38px;line-height:1;font-weight:900;font-style:italic;letter-spacing:-3px;color:#111;display:flex;align-items:center;gap:8px}
+                .po-logo img{max-height:42px;max-width:150px;object-fit:contain}
+                .po-table{width:100%;border-collapse:collapse;table-layout:fixed}
+                .po-table th,.po-table td{border:1px solid #222;padding:4px 6px;font-size:11px;vertical-align:middle;word-break:break-word}
+                .po-table th{background:#eee;font-weight:900;text-align:center}
+                .po-center{text-align:center}.po-num{text-align:right;white-space:nowrap}.po-bold{font-weight:900}.po-small{font-size:10px}.po-section-title{font-weight:900;font-size:15px;margin:0 0 8px}
+                .dom-title{text-align:center;font-size:31px;font-weight:900;letter-spacing:10px;margin:8px 0 20px}
+                .dom-head{display:grid;grid-template-columns:1fr 210px;gap:14px;align-items:start}.approval{width:210px;height:64px}.approval th,.approval td{border:1px solid #222;text-align:center;font-size:11px;padding:3px}.approval td{height:38px}
+                .dom-info{display:grid;grid-template-columns:1fr 1.13fr;gap:26px;margin-top:4px}.dom-money{border:3px solid #222;margin:8px 0 4px;display:grid;grid-template-columns:1fr 240px;font-size:16px;font-weight:900}.dom-money div{padding:4px 10px}.dom-items th,.dom-items td{height:22px}.dom-bottom{margin-top:5px}.dom-bottom th{width:128px;font-size:12px}.dom-bottom td{height:34px}.dom-caution{font-size:11px;line-height:1.55}
+                .abroad-head{display:grid;grid-template-columns:1fr 1fr;gap:45px;margin-bottom:26px}.abroad-company{font-size:12px;margin-top:6px}.abroad-title{font-size:28px;font-weight:900;letter-spacing:.5px;margin:6px 0 42px;text-align:left}.abroad-meta{font-size:13px}.abroad-meta .row{display:grid;grid-template-columns:120px 1fr;margin:4px 0}.abroad-two{display:grid;grid-template-columns:1fr 1fr;gap:45px;margin-bottom:24px}.abroad-box-title{font-weight:900;font-size:15px;margin-bottom:14px}.abroad-terms{margin:20px 0 32px}.abroad-terms th{font-size:13px}.abroad-terms td{height:44px;text-align:center;font-size:12px}.abroad-items th,.abroad-items td{height:25px;font-size:10px}.abroad-total{width:190px;margin-left:auto;margin-top:4px}.abroad-total th,.abroad-total td{border:2px solid #111!important;font-size:12px!important}.abroad-bottom{display:grid;grid-template-columns:1.2fr 1fr;gap:35px;margin-top:48px}.sign-line{border-top:3px solid #111;width:210px;text-align:center;margin-top:54px;margin-left:auto;padding-top:3px}.notes-title{font-weight:900;margin-top:12px}
+            </style>`;
+            if (type === 'domestic') {
+                const totalText = `${po2_moneyKo(d.total)} 원 정`;
+                return `${style}<div class="po-page">
+                    <div class="dom-head">
+                        <div class="dom-title">발 주 서</div>
+                        <table class="approval"><tr><th rowspan="2" style="width:25px">결<br>재</th><th>작성</th><th>승인</th><th>승인</th></tr><tr><td></td><td></td><td></td></tr></table>
+                    </div>
+                    <div class="dom-info">
+                        <table class="po-table"><colgroup><col style="width:74px"><col></colgroup>
+                            <tr><th>발주번호</th><td>${esc(d.po_no)}</td></tr>
+                            <tr><th>수 신</th><td>${esc(d.supplier_name)}</td></tr>
+                            <tr><th>담당자</th><td>${esc(d.supplier_manager)}</td></tr>
+                            <tr><th>TEL</th><td>${esc(d.supplier_tel)}</td></tr>
+                            <tr><th>FAX</th><td></td></tr>
+                            <tr><td colspan="2" class="po-center">납기일자 : ${po2_dateKo(d.delivery_date)}</td></tr>
+                        </table>
+                        <table class="po-table"><colgroup><col style="width:78px"><col></colgroup>
+                            <tr><td colspan="2" class="po-center" style="height:50px"><div class="po-logo"><img src="logo.png" onerror="this.style.display='none'">kooky</div></td></tr>
+                            <tr><th>사업자번호</th><td>${esc(d.buyer_biz)}</td></tr>
+                            <tr><th>회사명/대표</th><td>${esc(d.buyer_name)}</td></tr>
+                            <tr><th>주 소</th><td>${esc(d.buyer_addr)}</td></tr>
+                            <tr><th>담당/연락처</th><td>${esc(d.writer)} / ${esc(d.buyer_tel)}</td></tr>
+                            <tr><th>e-mail</th><td>${esc(d.buyer_email)}</td></tr>
+                        </table>
+                    </div>
+                    <div class="dom-money"><div>금 액 : ${esc(totalText)}</div><div>( \\: ${num(d.total)} ) / VAT포함</div></div>
+                    <table class="po-table dom-items"><thead><tr><th style="width:32px">번호</th><th style="width:180px">품목</th><th>규격</th><th style="width:35px">수량</th><th style="width:75px">단가</th><th style="width:95px">금액</th></tr></thead><tbody>${po2_rowsDomestic(d.items)}</tbody></table>
+                    <table class="po-table dom-bottom"><tr><th>납기장소</th><td>${esc(d.delivery_place || d.buyer_name)} / ${esc(d.buyer_addr)}<br><b>입고담당자 : ${esc(d.writer || '')}</b> (수신인을 정확하게 표기하여 주세요.)</td></tr><tr><th>전자세금계산서</th><td>담당자 : ${esc(d.writer || '')}<br>전 화 : ${esc(d.buyer_tel)} &nbsp;&nbsp;&nbsp; 팩 스 : 031-355-3129<br>이메일 : ${esc(d.buyer_email)}</td></tr><tr><th>주의사항</th><td class="dom-caution">① 납기엄수 : 지정납기 내에 미 입고시 발주는 취소될 수 있습니다.<br>② 하자발생 : 수입검사 및 생산 중 발견된 불량품은 즉시 반품조치 합니다.<br>* 재료결함으로 인한 불량 또는 손실발생시 공급자는 지체 없이 보상하여야 합니다.<br>③ 품질우선 : 당사의 고객은 품질우선을 중요시합니다. 따라서 귀사의 제품안전 및 품질 이상이 발생하지 않도록 지속적으로 관리하여 주시기 바랍니다.</td></tr></table>
+                </div>`;
+            }
+            return `${style}<div class="po-page">
+                <div class="abroad-head">
+                    <div><div class="po-logo"><img src="logo.png" onerror="this.style.display='none'">kooky</div><div class="abroad-company"><b>Kooky Hon Laser. Ltd.</b><br>${esc(d.buyer_addr).replaceAll(',', ',<br>')}<br>Tel : ${esc(d.buyer_tel)}<br>Fax : +82 31 355 3129</div></div>
+                    <div><div class="abroad-title">PURCHASE ORDER</div><div class="abroad-meta"><div class="row"><b>Date</b><span>${po2_dateEn(d.po_date)}</span></div><div class="row"><b>Order No.</b><span>${esc(d.po_no)}</span></div><div class="row"><b>Kooky Contact</b><span>${esc(d.writer || 'Venic')}</span></div></div></div>
+                </div>
+                <div class="abroad-two">
+                    <div><div class="abroad-box-title">VENDER</div><div style="font-size:13px"><b><i>${esc(d.supplier_name)}</i></b><br><br>${esc(d.supplier_addr).replaceAll('\n','<br>')}<br><br>${esc(d.supplier_tel)}<br>${esc(d.supplier_email)}</div></div>
+                    <div><div class="abroad-box-title">SHIP TO ADDRESS</div><div style="font-size:13px"><b>${esc(d.writer || 'Venic')}</b><br><b><i>${esc(d.buyer_name)}</i></b><br>${esc(d.buyer_addr).replaceAll(',', ',<br>')}<br>${esc(d.destination)}<br>${esc(d.buyer_tel)}<br>+82 31 355 3129</div></div>
+                </div>
+                <table class="po-table abroad-terms"><tr><th>RMA No.</th><th>SHIP VIA</th><th>PAYMENT TERMS</th></tr><tr><td></td><td>${esc(d.incoterms)}</td><td>${esc(d.payment_terms)}</td></tr></table>
+                <table class="po-table abroad-items"><thead><tr><th style="width:35px">Line</th><th style="width:115px">Part No.</th><th>Description of Goods</th><th style="width:34px">Unit</th><th style="width:95px">Unit price</th><th style="width:35px">Q'ty</th><th style="width:95px">Total price</th></tr></thead><tbody>${po2_rowsOverseas(d.items,d.currency)}</tbody></table>
+                <table class="po-table abroad-total"><tr><th>TOTAL</th><td class="po-num">${num(d.total)} &nbsp; ${esc(d.currency)}</td></tr></table>
+                <div class="abroad-bottom"><div><div class="po-section-title">DELIVERY DATE</div><div>${po2_dateEn(d.delivery_date)}</div><div class="po-section-title" style="margin-top:16px">BILL TO ADDRESS</div><div><b><i>${esc(d.buyer_name)}</i></b><br>ATTAN : ${esc(d.writer || 'Venic')}<br>${esc(d.buyer_addr).replaceAll(',', ',<br>')}<br>Tel : ${esc(d.buyer_tel)}<br>Fax : +82 31 355 3129</div><div class="notes-title">NOTES</div><div>${esc(d.note).replaceAll('\n','<br>')}</div></div><div><div class="sign-line"><b>${esc(d.writer || 'Venic')}</b><br><span>Authorized by</span></div><div style="text-align:center;margin-top:24px">${po2_dateEn(d.po_date)}</div></div></div>
+            </div>`;
         }
 
         function getClient(){
