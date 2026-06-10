@@ -526,7 +526,7 @@
                                     <input id="dom_supplier_email" class="input-box" value="${escapeAttr(data.supplier_email || '')}" placeholder="담당자 이메일">
                                     <input id="dom_supplier_addr" class="input-box" value="${escapeAttr(data.supplier_addr || '')}" placeholder="공급처 주소">
                                     <input id="dom_delivery_place" class="input-box" value="${escapeAttr(data.delivery_place || '당사 입고')}" placeholder="납품장소">
-                                    <p class="text-xs text-slate-500">거래처 관리에 등록된 회사명을 검색/선택하면 담당자, 메일, 연락처가 자동 입력됩니다.</p>
+                                    <p class="text-xs text-slate-500">거래처 관리에 등록된 회사명을 검색/선택하면 사업자번호, 담당자, 메일, 연락처, 주소가 자동 입력됩니다.</p>
                                 </div>
                             </div>
                         </div>
@@ -646,12 +646,13 @@
                                         <input id="exp_supplier_name" class="input-box" value="${escapeAttr(data.supplier_name || '')}" placeholder="Supplier company search" autocomplete="off" oninput="showPartnerSuggestions('overseas')" onfocus="showPartnerSuggestions('overseas')">
                                         <div id="exp_partner_suggestions" class="hidden absolute z-50 left-0 right-0 bg-white border rounded-xl shadow-lg max-h-60 overflow-y-auto mt-1"></div>
                                     </div>
+                                    <input id="exp_supplier_biz" class="input-box" value="${escapeAttr(data.supplier_biz || '')}" placeholder="Business No. / VAT No.">
                                     <input id="exp_supplier_manager" class="input-box" value="${escapeAttr(data.supplier_manager || '')}" placeholder="Contact Person">
                                     <input id="exp_supplier_tel" class="input-box" value="${escapeAttr(data.supplier_tel || '')}" placeholder="Tel">
                                     <input id="exp_supplier_email" class="input-box" value="${escapeAttr(data.supplier_email || '')}" placeholder="Contact Email">
                                     <input id="exp_supplier_addr" class="input-box" value="${escapeAttr(data.supplier_addr || '')}" placeholder="Supplier Address">
                                     <input id="exp_destination" class="input-box" value="${escapeAttr(data.destination || 'Korea')}" placeholder="Destination">
-                                    <p class="text-xs text-slate-500">거래처 관리 데이터에서 회사명을 선택하면 Contact, Email, Tel.이 자동 입력됩니다.</p>
+                                    <p class="text-xs text-slate-500">거래처 관리 데이터에서 회사명을 선택하면 Business No., Contact, Email, Tel., Address가 자동 입력됩니다.</p>
                                 </div>
                             </div>
                         </div>
@@ -797,7 +798,7 @@
                 id: getValue('exp_po_id') || makePOId(), type,
                 po_no: getValue('exp_po_no'), po_date: getValue('exp_po_date'), delivery_date: getValue('exp_delivery_date'), currency: getValue('exp_currency'), incoterms: getValue('exp_incoterms'),
                 buyer_name: getValue('exp_buyer_name'), buyer_addr: getValue('exp_buyer_addr'), buyer_tel: getValue('exp_buyer_tel'), buyer_email: getValue('exp_buyer_email'),
-                supplier_name: getValue('exp_supplier_name'), supplier_manager: getValue('exp_supplier_manager'), supplier_tel: getValue('exp_supplier_tel'), supplier_email: getValue('exp_supplier_email'), supplier_addr: getValue('exp_supplier_addr'), destination: getValue('exp_destination'),
+                supplier_name: getValue('exp_supplier_name'), supplier_biz: getValue('exp_supplier_biz'), supplier_manager: getValue('exp_supplier_manager'), supplier_tel: getValue('exp_supplier_tel'), supplier_email: getValue('exp_supplier_email'), supplier_addr: getValue('exp_supplier_addr'), destination: getValue('exp_destination'),
                 payment_terms: getValue('exp_payment_terms'), note: getValue('exp_note'), subtotal, vat: 0, total: subtotal, items,
                 updated_at: now
             };
@@ -936,9 +937,11 @@
                 po_no: row.po_no || row.no || row.document_no || '',
                 po_date: row.po_date || row.date || row.created_at?.slice?.(0,10) || '',
                 supplier_name: row.supplier_name || row.partner_name || row.vendor_name || row.customer_name || '',
+                supplier_biz: row.supplier_biz || row.biz_num || row.business_number || row.business_no || row.reg_no || '',
                 supplier_manager: row.supplier_manager || row.manager_name || row.contact_name || '',
                 supplier_email: row.supplier_email || row.email || row.contact_email || '',
                 supplier_tel: row.supplier_tel || row.phone || row.tel || '',
+                supplier_addr: row.supplier_addr || row.address || row.addr || row.company_address || '',
                 currency: row.currency || (type === 'overseas' ? 'USD' : 'KRW'),
                 total: Number(row.total || row.total_amount || row.amount || 0),
                 status: row.status || 'DB불러옴',
@@ -1002,11 +1005,11 @@
             return {
                 id: p.id || p.uuid || '',
                 name: p.name || p.company_name || p.partner_name || p.customer_name || p.supplier_name || p.vendor_name || '',
-                biz: p.biz_num || p.business_number || p.business_no || p.reg_no || '',
+                biz: p.biz_num || p.biz_no || p.business_number || p.business_no || p.reg_no || p.registration_no || p.tax_id || p.vat_no || '',
                 manager: p.manager_name || p.contact_name || p.manager || p.contact || p.owner_name || '',
                 email: p.email || p.manager_email || p.contact_email || p.mail || '',
-                phone: p.phone || p.tel || p.mobile || p.manager_phone || p.contact_phone || '',
-                address: p.address || p.addr || p.company_address || '',
+                phone: p.phone || p.tel || p.telephone || p.mobile || p.manager_phone || p.contact_phone || '',
+                address: p.address || p.addr || p.company_address || p.supplier_addr || p.vendor_address || '',
                 raw: p
             };
         }
@@ -1034,7 +1037,8 @@
             box.innerHTML = results.map((p, idx) => `
                 <button type="button" onclick="selectPartner('${type}', ${idx})" class="block w-full text-left p-3 hover:bg-blue-50 border-b last:border-b-0">
                     <div class="font-bold text-slate-800">${escapeHtml(p.name)}</div>
-                    <div class="text-xs text-slate-500 mt-1">담당자: ${escapeHtml(p.manager || '-')} · 메일: ${escapeHtml(p.email || '-')} · 연락처: ${escapeHtml(p.phone || '-')}</div>
+                    <div class="text-xs text-slate-500 mt-1">사업자번호: ${escapeHtml(p.biz || '-')} · 담당자: ${escapeHtml(p.manager || '-')} · 메일: ${escapeHtml(p.email || '-')} · 연락처: ${escapeHtml(p.phone || '-')}</div>
+                    <div class="text-xs text-slate-400 mt-1">${escapeHtml(p.address || '')}</div>
                 </button>
             `).join('');
             box.classList.remove('hidden');
@@ -1053,6 +1057,7 @@
                 document.getElementById('dom_partner_suggestions')?.classList.add('hidden');
             } else {
                 setValue('exp_supplier_name', p.name);
+                setValue('exp_supplier_biz', p.biz);
                 setValue('exp_supplier_manager', p.manager);
                 setValue('exp_supplier_tel', p.phone);
                 setValue('exp_supplier_email', p.email);
@@ -1157,22 +1162,94 @@ KOOKYHON LASER`;
         function buildPOPrintHTML(type) {
             const data = collectPOData(type);
             const items = data.items;
+            const printText = (value) => {
+                const s = escapeHtml(value || '').trim();
+                return s || '<span class="po-muted">-</span>';
+            };
+            const printMulti = (value) => printText(value).replaceAll('\n', '<br>');
+            const label = (ko, en = '') => en ? `${ko}<span>${en}</span>` : ko;
+
             const commonStyle = `
                 <style>
-                    .po-print-page { width: 210mm; min-height: 297mm; padding: 15mm; background: white; color: #111827; font-family: 'Malgun Gothic', Arial, sans-serif; }
-                    .po-print-top { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 18px; }
-                    .po-print-brand { font-size: 22px; font-weight: 900; }
-                    .po-print-title { font-size: 30px; font-weight: 900; text-align: center; letter-spacing: 8px; margin: 20px 0; }
-                    .po-print-title-en { font-size: 28px; font-weight: 900; border-bottom: 3px solid #111827; padding-bottom: 8px; margin: 12px 0 20px; }
-                    .po-print-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-                    .po-print-table th, .po-print-table td { border: 1px solid #111827; padding: 7px; font-size: 12px; vertical-align: middle; }
-                    .po-print-table th { background: #f3f4f6; font-weight: 800; }
-                    .po-print-num { text-align: right; white-space: nowrap; }
-                    .po-print-center { text-align: center; }
-                    .po-print-sum { width: 310px; margin-left: auto; }
-                    .po-print-sum .total th, .po-print-sum .total td { background: #111827; color: white; font-size: 14px; }
-                    .po-print-note { border: 1px solid #111827; min-height: 70px; padding: 10px; font-size: 12px; margin-top: 14px; }
-                    .po-print-sign { margin-top: 24px; text-align: right; font-size: 16px; font-weight: 900; }
+                    @page { size: A4; margin: 0; }
+                    .po-print-page {
+                        width: 210mm;
+                        min-height: 297mm;
+                        padding: 13mm 14mm;
+                        background: #ffffff;
+                        color: #0f172a;
+                        font-family: 'Malgun Gothic', Arial, sans-serif;
+                        position: relative;
+                    }
+                    .po-print-page * { box-sizing: border-box; }
+                    .po-watermark {
+                        position: absolute;
+                        right: 14mm;
+                        top: 11mm;
+                        font-size: 44px;
+                        font-weight: 900;
+                        color: #f1f5f9;
+                        letter-spacing: -2px;
+                        z-index: 0;
+                    }
+                    .po-content { position: relative; z-index: 1; }
+                    .po-header {
+                        display: grid;
+                        grid-template-columns: 1fr 74mm;
+                        gap: 9mm;
+                        align-items: start;
+                        border-bottom: 3px solid #0f172a;
+                        padding-bottom: 6mm;
+                    }
+                    .po-brand { font-size: 24px; font-weight: 900; letter-spacing: -0.7px; color: #0f172a; }
+                    .po-brand small { display: block; margin-top: 2mm; font-size: 11px; font-weight: 500; color: #64748b; letter-spacing: 0; }
+                    .po-title { margin-top: 7mm; font-size: 32px; font-weight: 900; letter-spacing: 8px; color: #0f172a; }
+                    .po-title.en { letter-spacing: 0; font-size: 30px; }
+                    .po-subtitle { margin-top: 1mm; color: #64748b; font-size: 12px; font-weight: 700; }
+                    .po-meta { border: 1px solid #0f172a; border-radius: 10px; overflow: hidden; background: #fff; }
+                    .po-meta-row { display: grid; grid-template-columns: 29mm 1fr; border-bottom: 1px solid #cbd5e1; }
+                    .po-meta-row:last-child { border-bottom: 0; }
+                    .po-meta-label { background: #0f172a; color: #fff; padding: 7px 9px; font-size: 11px; font-weight: 900; }
+                    .po-meta-value { padding: 7px 9px; font-size: 12px; font-weight: 800; }
+                    .po-party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin-top: 7mm; }
+                    .po-party-card { border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; background: #ffffff; }
+                    .po-party-head { background: #f8fafc; padding: 9px 11px; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+                    .po-party-head b { font-size: 14px; color: #0f172a; }
+                    .po-party-head span { font-size: 10px; color: #64748b; font-weight: 800; }
+                    .po-info-table { width: 100%; border-collapse: collapse; }
+                    .po-info-table th, .po-info-table td { border-bottom: 1px solid #e2e8f0; padding: 7px 9px; font-size: 11px; vertical-align: top; }
+                    .po-info-table tr:last-child th, .po-info-table tr:last-child td { border-bottom: 0; }
+                    .po-info-table th { width: 25mm; background: #ffffff; color: #475569; text-align: left; font-weight: 900; }
+                    .po-info-table th span { display: block; font-size: 9px; color: #94a3b8; margin-top: 1px; font-weight: 700; }
+                    .po-section-title { margin: 7mm 0 2.5mm; font-size: 14px; font-weight: 900; color: #0f172a; display: flex; align-items: center; gap: 7px; }
+                    .po-section-title:before { content: ''; width: 5px; height: 16px; background: #2563eb; border-radius: 999px; display: inline-block; }
+                    .po-items { width: 100%; border-collapse: collapse; border: 1px solid #0f172a; }
+                    .po-items th { background: #0f172a; color: #fff; padding: 8px 6px; font-size: 11px; text-align: center; border-right: 1px solid #334155; }
+                    .po-items th:last-child { border-right: 0; }
+                    .po-items td { border-top: 1px solid #cbd5e1; border-right: 1px solid #e2e8f0; padding: 8px 7px; font-size: 11px; vertical-align: middle; }
+                    .po-items td:last-child { border-right: 0; }
+                    .po-items tbody tr:nth-child(even) td { background: #f8fafc; }
+                    .po-num { text-align: right; white-space: nowrap; }
+                    .po-center { text-align: center; }
+                    .po-bottom { display: grid; grid-template-columns: 1fr 76mm; gap: 6mm; margin-top: 5mm; align-items: start; }
+                    .po-note-box { border: 1px solid #cbd5e1; border-radius: 12px; min-height: 36mm; padding: 10px 12px; font-size: 11px; background: #fff; }
+                    .po-note-box b { display: block; margin-bottom: 5px; font-size: 12px; }
+                    .po-sum { width: 100%; border-collapse: collapse; border: 1px solid #0f172a; border-radius: 12px; overflow: hidden; }
+                    .po-sum th, .po-sum td { padding: 9px 10px; font-size: 12px; border-bottom: 1px solid #cbd5e1; }
+                    .po-sum th { background: #f8fafc; text-align: left; color: #334155; }
+                    .po-sum td { text-align: right; font-weight: 900; }
+                    .po-sum tr:last-child th, .po-sum tr:last-child td { border-bottom: 0; }
+                    .po-sum .total th, .po-sum .total td { background: #0f172a; color: white; font-size: 15px; }
+                    .po-sign-row { margin-top: 7mm; display: flex; justify-content: flex-end; align-items: center; gap: 8mm; }
+                    .po-sign-company { font-size: 18px; font-weight: 900; color: #0f172a; }
+                    .po-sign-box { width: 28mm; height: 14mm; border: 2px solid #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 900; font-size: 11px; }
+                    .po-footer { position: absolute; left: 14mm; right: 14mm; bottom: 8mm; border-top: 1px solid #e2e8f0; padding-top: 3mm; display: flex; justify-content: space-between; color: #94a3b8; font-size: 10px; }
+                    .po-muted { color: #94a3b8; }
+                    .po-chip { display: inline-block; padding: 3px 8px; background: #eff6ff; color: #1d4ed8; border-radius: 999px; font-size: 10px; font-weight: 900; }
+                    .po-chip.cyan { background: #ecfeff; color: #0e7490; }
+                    .po-terms { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 5mm; }
+                    .po-term-box { border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; font-size: 11px; min-height: 22mm; background: #fff; }
+                    .po-term-box b { display: block; margin-bottom: 5px; }
                 </style>
             `;
 
@@ -1180,39 +1257,90 @@ KOOKYHON LASER`;
                 return `
                     ${commonStyle}
                     <div class="po-print-page">
-                        <div class="po-print-top">
-                            <div class="po-print-brand">KOOKYHON LASER<br><span style="font-size:12px;font-weight:400;">레이저 마킹기 · 자동화 장비 · 부품</span></div>
-                            <table class="po-print-table" style="width:280px;">
-                                <tr><th>발주번호</th><td>${escapeHtml(data.po_no)}</td></tr>
-                                <tr><th>발주일자</th><td>${escapeHtml(data.po_date)}</td></tr>
-                                <tr><th>작성자</th><td>${escapeHtml(data.writer)}</td></tr>
+                        <div class="po-watermark">KOOKY</div>
+                        <div class="po-content">
+                            <div class="po-header">
+                                <div>
+                                    <div class="po-brand">KOOKYHON LASER<small>레이저 마킹기 · 자동화 장비 · 부품</small></div>
+                                    <div class="po-title">발 주 서</div>
+                                    <div class="po-subtitle">Purchase Order for Domestic Supplier</div>
+                                </div>
+                                <div class="po-meta">
+                                    <div class="po-meta-row"><div class="po-meta-label">발주번호</div><div class="po-meta-value">${printText(data.po_no)}</div></div>
+                                    <div class="po-meta-row"><div class="po-meta-label">발주일자</div><div class="po-meta-value">${printText(data.po_date)}</div></div>
+                                    <div class="po-meta-row"><div class="po-meta-label">납기요청</div><div class="po-meta-value">${printText(data.delivery_date)}</div></div>
+                                    <div class="po-meta-row"><div class="po-meta-label">작성자</div><div class="po-meta-value">${printText(data.writer)}</div></div>
+                                </div>
+                            </div>
+
+                            <div class="po-party-grid">
+                                <div class="po-party-card">
+                                    <div class="po-party-head"><b>발주처</b><span>BUYER</span></div>
+                                    <table class="po-info-table">
+                                        <tr><th>${label('상호', 'Company')}</th><td>${printText(data.buyer_name)}</td></tr>
+                                        <tr><th>${label('사업자번호', 'Biz No.')}</th><td>${printText(data.buyer_biz)}</td></tr>
+                                        <tr><th>${label('주소', 'Address')}</th><td>${printText(data.buyer_addr)}</td></tr>
+                                        <tr><th>${label('연락처', 'Tel.')}</th><td>${printText(data.buyer_tel)}</td></tr>
+                                        <tr><th>${label('이메일', 'E-mail')}</th><td>${printText(data.buyer_email)}</td></tr>
+                                    </table>
+                                </div>
+                                <div class="po-party-card">
+                                    <div class="po-party-head"><b>공급처 / 수신자</b><span>SUPPLIER</span></div>
+                                    <table class="po-info-table">
+                                        <tr><th>${label('상호', 'Company')}</th><td>${printText(data.supplier_name)}</td></tr>
+                                        <tr><th>${label('사업자번호', 'Biz No.')}</th><td>${printText(data.supplier_biz)}</td></tr>
+                                        <tr><th>${label('담당자명', 'Contact')}</th><td>${printText(data.supplier_manager)}</td></tr>
+                                        <tr><th>${label('연락처', 'Tel.')}</th><td>${printText(data.supplier_tel)}</td></tr>
+                                        <tr><th>${label('담당자 이메일', 'E-mail')}</th><td>${printText(data.supplier_email)}</td></tr>
+                                        <tr><th>${label('공급처 주소', 'Address')}</th><td>${printText(data.supplier_addr)}</td></tr>
+                                        <tr><th>${label('납품장소', 'Delivery')}</th><td>${printText(data.delivery_place)}</td></tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="po-section-title">발주 품목 <span class="po-chip">KRW / VAT 별도</span></div>
+                            <table class="po-items">
+                                <thead>
+                                    <tr>
+                                        <th style="width:9mm;">No</th>
+                                        <th>품목명</th>
+                                        <th style="width:29mm;">규격</th>
+                                        <th style="width:17mm;">수량</th>
+                                        <th style="width:25mm;">단가</th>
+                                        <th style="width:27mm;">금액</th>
+                                        <th style="width:24mm;">납기일</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${items.map(i => `
+                                        <tr>
+                                            <td class="po-center">${i.no}</td>
+                                            <td>${printText(i.name)}</td>
+                                            <td class="po-center">${printText(i.spec)}</td>
+                                            <td class="po-num">${formatNumber(i.qty)}</td>
+                                            <td class="po-num">${formatNumber(i.price)}</td>
+                                            <td class="po-num"><b>${formatNumber(i.amount)}</b></td>
+                                            <td class="po-center">${printText(data.delivery_date)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
                             </table>
+
+                            <div class="po-bottom">
+                                <div class="po-note-box"><b>비고</b>${printMulti(data.note)}</div>
+                                <table class="po-sum">
+                                    <tr><th>공급가액</th><td>${formatNumber(data.subtotal)}</td></tr>
+                                    <tr><th>부가세</th><td>${formatNumber(data.vat)}</td></tr>
+                                    <tr class="total"><th>합계금액</th><td>${formatNumber(data.total)}</td></tr>
+                                </table>
+                            </div>
+
+                            <div class="po-sign-row">
+                                <div class="po-sign-company">쿠키혼레이저</div>
+                                <div class="po-sign-box">인</div>
+                            </div>
                         </div>
-
-                        <div class="po-print-title">발 주 서</div>
-
-                        <table class="po-print-table">
-                            <tr><th style="width:90px;">발주처</th><td>${escapeHtml(data.buyer_name)}</td><th style="width:90px;">공급처</th><td>${escapeHtml(data.supplier_name)}</td></tr>
-                            <tr><th>사업자번호</th><td>${escapeHtml(data.buyer_biz)}</td><th>담당자</th><td>${escapeHtml(data.supplier_manager)}</td></tr>
-                            <tr><th>주소</th><td>${escapeHtml(data.buyer_addr)}</td><th>연락처</th><td>${escapeHtml(data.supplier_tel)}</td></tr>
-                            <tr><th>E-mail</th><td>${escapeHtml(data.buyer_email)}</td><th>납품장소</th><td>${escapeHtml(data.delivery_place)}</td></tr>
-                        </table>
-
-                        <table class="po-print-table">
-                            <thead><tr><th style="width:45px;">No</th><th>품목명</th><th style="width:120px;">규격</th><th style="width:70px;">수량</th><th style="width:100px;">단가</th><th style="width:110px;">금액</th><th style="width:110px;">납기일</th></tr></thead>
-                            <tbody>
-                                ${items.map(i => `<tr><td class="po-print-center">${i.no}</td><td>${escapeHtml(i.name)}</td><td class="po-print-center">${escapeHtml(i.spec)}</td><td class="po-print-num">${formatNumber(i.qty)}</td><td class="po-print-num">${formatNumber(i.price)}</td><td class="po-print-num">${formatNumber(i.amount)}</td><td class="po-print-center">${escapeHtml(data.delivery_date)}</td></tr>`).join('')}
-                            </tbody>
-                        </table>
-
-                        <table class="po-print-table po-print-sum">
-                            <tr><th>공급가액</th><td class="po-print-num">${formatNumber(data.subtotal)}</td></tr>
-                            <tr><th>부가세</th><td class="po-print-num">${formatNumber(data.vat)}</td></tr>
-                            <tr class="total"><th>합계금액</th><td class="po-print-num">${formatNumber(data.total)}</td></tr>
-                        </table>
-
-                        <div class="po-print-note"><b>비고</b><br>${escapeHtml(data.note).replaceAll('\n', '<br>')}</div>
-                        <div class="po-print-sign">쿠키혼레이저 귀중</div>
+                        <div class="po-footer"><span>KOOKYHON LASER ERP</span><span>${printText(data.po_no)}</span></div>
                     </div>
                 `;
             }
@@ -1220,71 +1348,97 @@ KOOKYHON LASER`;
             return `
                 ${commonStyle}
                 <div class="po-print-page">
-                    <div class="po-print-top">
-                        <div class="po-print-brand">KOOKYHON LASER<br><span style="font-size:12px;font-weight:400;">Laser Marking System · Automation · Parts</span></div>
-                        <table class="po-print-table" style="width:280px;">
-                            <tr><th>PO No.</th><td>${escapeHtml(data.po_no)}</td></tr>
-                            <tr><th>Date</th><td>${escapeHtml(data.po_date)}</td></tr>
-                            <tr><th>Currency</th><td>${escapeHtml(data.currency)}</td></tr>
+                    <div class="po-watermark">PO</div>
+                    <div class="po-content">
+                        <div class="po-header">
+                            <div>
+                                <div class="po-brand">KOOKYHON LASER<small>Laser Marking System · Automation · Parts</small></div>
+                                <div class="po-title en">PURCHASE ORDER</div>
+                                <div class="po-subtitle">International Purchase Order</div>
+                            </div>
+                            <div class="po-meta">
+                                <div class="po-meta-row"><div class="po-meta-label">PO No.</div><div class="po-meta-value">${printText(data.po_no)}</div></div>
+                                <div class="po-meta-row"><div class="po-meta-label">Date</div><div class="po-meta-value">${printText(data.po_date)}</div></div>
+                                <div class="po-meta-row"><div class="po-meta-label">Currency</div><div class="po-meta-value">${printText(data.currency)}</div></div>
+                                <div class="po-meta-row"><div class="po-meta-label">Delivery</div><div class="po-meta-value">${printText(data.delivery_date)}</div></div>
+                            </div>
+                        </div>
+
+                        <div class="po-party-grid">
+                            <div class="po-party-card">
+                                <div class="po-party-head"><b>Buyer</b><span>ORDERED BY</span></div>
+                                <table class="po-info-table">
+                                    <tr><th>Company</th><td>${printText(data.buyer_name)}</td></tr>
+                                    <tr><th>Address</th><td>${printText(data.buyer_addr)}</td></tr>
+                                    <tr><th>Tel.</th><td>${printText(data.buyer_tel)}</td></tr>
+                                    <tr><th>E-mail</th><td>${printText(data.buyer_email)}</td></tr>
+                                </table>
+                            </div>
+                            <div class="po-party-card">
+                                <div class="po-party-head"><b>Supplier / Consignee</b><span>TO</span></div>
+                                <table class="po-info-table">
+                                    <tr><th>Company</th><td>${printText(data.supplier_name)}</td></tr>
+                                    <tr><th>Business No.<span>VAT No.</span></th><td>${printText(data.supplier_biz)}</td></tr>
+                                    <tr><th>Contact</th><td>${printText(data.supplier_manager)}</td></tr>
+                                    <tr><th>Tel.</th><td>${printText(data.supplier_tel)}</td></tr>
+                                    <tr><th>E-mail</th><td>${printText(data.supplier_email)}</td></tr>
+                                    <tr><th>Address</th><td>${printText(data.supplier_addr)}</td></tr>
+                                    <tr><th>Incoterms</th><td>${printText(data.incoterms)}</td></tr>
+                                    <tr><th>Destination</th><td>${printText(data.destination)}</td></tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="po-section-title">Order Items <span class="po-chip cyan">${printText(data.currency)}</span></div>
+                        <table class="po-items">
+                            <thead>
+                                <tr>
+                                    <th style="width:9mm;">No.</th>
+                                    <th>Description</th>
+                                    <th style="width:29mm;">Model</th>
+                                    <th style="width:17mm;">Qty</th>
+                                    <th style="width:27mm;">Unit Price</th>
+                                    <th style="width:30mm;">Amount</th>
+                                    <th style="width:24mm;">Delivery</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${items.map(i => `
+                                    <tr>
+                                        <td class="po-center">${i.no}</td>
+                                        <td>${printText(i.name)}</td>
+                                        <td class="po-center">${printText(i.spec)}</td>
+                                        <td class="po-num">${formatNumber(i.qty)}</td>
+                                        <td class="po-num">${printText(data.currency)} ${formatNumber(i.price)}</td>
+                                        <td class="po-num"><b>${printText(data.currency)} ${formatNumber(i.amount)}</b></td>
+                                        <td class="po-center">${printText(data.delivery_date)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
                         </table>
+
+                        <div class="po-bottom">
+                            <div>
+                                <div class="po-terms">
+                                    <div class="po-term-box"><b>Payment Terms</b>${printMulti(data.payment_terms)}</div>
+                                    <div class="po-term-box"><b>Shipping / Remark</b>${printMulti(data.note)}</div>
+                                </div>
+                            </div>
+                            <table class="po-sum">
+                                <tr><th>Subtotal</th><td>${printText(data.currency)} ${formatNumber(data.subtotal)}</td></tr>
+                                <tr><th>Shipping</th><td>TBD</td></tr>
+                                <tr class="total"><th>Total</th><td>${printText(data.currency)} ${formatNumber(data.total)}</td></tr>
+                            </table>
+                        </div>
+
+                        <div class="po-sign-row">
+                            <div class="po-sign-company">Authorized by KOOKYHON LASER</div>
+                            <div class="po-sign-box">SIGN</div>
+                        </div>
                     </div>
-
-                    <div class="po-print-title-en">PURCHASE ORDER</div>
-
-                    <table class="po-print-table">
-                        <tr><th style="width:100px;">Buyer</th><td>${escapeHtml(data.buyer_name)}</td><th style="width:100px;">Supplier</th><td>${escapeHtml(data.supplier_name)}</td></tr>
-                        <tr><th>Address</th><td>${escapeHtml(data.buyer_addr)}</td><th>Contact</th><td>${escapeHtml(data.supplier_manager)}</td></tr>
-                        <tr><th>Tel.</th><td>${escapeHtml(data.buyer_tel)}</td><th>Email</th><td>${escapeHtml(data.supplier_email)}</td></tr>
-                        <tr><th>E-mail</th><td>${escapeHtml(data.buyer_email)}</td><th>Incoterms</th><td>${escapeHtml(data.incoterms)}</td></tr>
-                    </table>
-
-                    <table class="po-print-table">
-                        <thead><tr><th style="width:45px;">No.</th><th>Description</th><th style="width:120px;">Model</th><th style="width:70px;">Qty</th><th style="width:110px;">Unit Price</th><th style="width:120px;">Amount</th><th style="width:110px;">Delivery</th></tr></thead>
-                        <tbody>
-                            ${items.map(i => `<tr><td class="po-print-center">${i.no}</td><td>${escapeHtml(i.name)}</td><td class="po-print-center">${escapeHtml(i.spec)}</td><td class="po-print-num">${formatNumber(i.qty)}</td><td class="po-print-num">${data.currency} ${formatNumber(i.price)}</td><td class="po-print-num">${data.currency} ${formatNumber(i.amount)}</td><td class="po-print-center">${escapeHtml(data.delivery_date)}</td></tr>`).join('')}
-                        </tbody>
-                    </table>
-
-                    <table class="po-print-table po-print-sum">
-                        <tr><th>Subtotal</th><td class="po-print-num">${data.currency} ${formatNumber(data.subtotal)}</td></tr>
-                        <tr><th>Shipping</th><td class="po-print-num">TBD</td></tr>
-                        <tr class="total"><th>Total</th><td class="po-print-num">${data.currency} ${formatNumber(data.total)}</td></tr>
-                    </table>
-
-                    <div class="po-print-note"><b>Payment Terms</b><br>${escapeHtml(data.payment_terms)}<br><br><b>Remarks</b><br>${escapeHtml(data.note).replaceAll('\n', '<br>')}</div>
-                    <div class="po-print-sign">Authorized by KOOKYHON LASER</div>
+                    <div class="po-footer"><span>KOOKYHON LASER ERP</span><span>${printText(data.po_no)}</span></div>
                 </div>
             `;
-        }
-
-        function formatNumber(num) {
-            return Number(num || 0).toLocaleString('ko-KR');
-        }
-
-        function escapeHtml(value) {
-            return String(value ?? '')
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('"', '&quot;')
-                .replaceAll("'", '&#039;');
-        }
-
-        function escapeAttr(value) {
-            return escapeHtml(value).replaceAll('\n', ' ');
-        }
-
-        function escapeTextarea(value) {
-            return escapeHtml(value);
-        }
-
-        function getValue(id) {
-            return document.getElementById(id)?.value || '';
-        }
-
-        function setValue(id, value) {
-            const el = document.getElementById(id);
-            if (el) el.value = value || '';
         }
     </script>
 
