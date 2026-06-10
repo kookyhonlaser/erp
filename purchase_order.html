@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>국내/해외 발주서 2종 + 메일 작성</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --paper: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --head: #111827;
+      --soft: #f9fafb;
+      --accent: #2563eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+      line-height: 1.45;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: #111827;
+      color: white;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar strong { font-size: 16px; }
+
+    .toolbar .btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button, .button {
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: white;
+      color: #111827;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 13px;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 22px auto 60px;
+      padding: 0 16px;
+    }
+
+    .guide {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+    }
+
+    .guide h1 {
+      margin: 0 0 8px;
+      font-size: 21px;
+    }
+
+    .guide p {
+      margin: 4px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .control-panel {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .control-box {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--soft);
+    }
+
+    .control-box h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #374151;
+      margin: 8px 0 4px;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 9px;
+      font-family: inherit;
+      font-size: 13px;
+      background: white;
+    }
+
+    textarea {
+      min-height: 62px;
+      resize: vertical;
+    }
+
+    .email-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .template-label {
+      width: 210mm;
+      margin: 0 auto 8px;
+      background: #374151;
+      color: white;
+      padding: 8px 14px;
+      font-weight: 800;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .paper {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto 30px;
+      padding: 15mm;
+      background: var(--paper);
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
+      page-break-after: always;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      font-weight: 900;
+      font-size: 23px;
+      letter-spacing: -0.5px;
+    }
+
+    .brand small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+      margin-top: 3px;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 31px;
+      font-weight: 900;
+      letter-spacing: 8px;
+      margin: 18px 0 22px;
+    }
+
+    .title.en {
+      letter-spacing: 0;
+      font-size: 28px;
+      text-align: left;
+      border-bottom: 3px solid #111827;
+      padding-bottom: 10px;
+      margin-top: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .meta {
+      width: 285px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 8px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f3f4f6;
+      color: #374151;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .info th {
+      width: 105px;
+      text-align: left;
+    }
+
+    .section-title {
+      margin: 16px 0 8px;
+      font-weight: 900;
+      font-size: 15px;
+      color: #111827;
+    }
+
+    .items th {
+      text-align: center;
+    }
+
+    .num {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .sum {
+      width: 310px;
+      margin-left: auto;
+      margin-top: 12px;
+    }
+
+    .sum th {
+      text-align: left;
+    }
+
+    .sum td {
+      text-align: right;
+      font-weight: 800;
+    }
+
+    .sum .total th,
+    .sum .total td {
+      background: #111827;
+      color: white;
+      font-size: 15px;
+    }
+
+    .note {
+      border: 1px solid var(--line);
+      min-height: 75px;
+      padding: 11px;
+      margin-top: 16px;
+      font-size: 13px;
+    }
+
+    .sign {
+      margin-top: 26px;
+      text-align: right;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .english .brand {
+      font-size: 22px;
+    }
+
+    .english .info th {
+      width: 120px;
+    }
+
+    .terms {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .terms div {
+      border: 1px solid var(--line);
+      padding: 9px;
+      font-size: 12px;
+      background: #fafafa;
+    }
+
+    [contenteditable="true"] {
+      outline: 1px dashed transparent;
+      border-radius: 4px;
+    }
+
+    [contenteditable="true"]:hover {
+      outline-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    @media (max-width: 900px) {
+      .control-panel {
+        grid-template-columns: 1fr;
+      }
+      .paper, .template-label {
+        width: 100%;
+      }
+      .paper {
+        padding: 18px;
+        min-height: auto;
+      }
+    }
+
+    @media print {
+      body { background: white; }
+      .toolbar, .guide, .control-panel, .template-label { display: none; }
+      .wrap {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+      .paper {
+        box-shadow: none;
+        margin: 0;
+        width: 210mm;
+        min-height: 297mm;
+        padding: 15mm;
+      }
+      [contenteditable="true"]:hover {
+        outline-color: transparent;
+        background: transparent;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <strong>국내/해외 발주서 2종 + 담당자 메일 작성</strong>
+    <div class="btns">
+      <button onclick="window.print()">인쇄 / PDF 저장</button>
+      <button class="primary" onclick="scrollToTemplates()">양식 보기</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="guide">
+      <h1>발주서는 국내용 / 해외용 2가지만 두는 구조가 가장 깔끔합니다.</h1>
+      <p>거래처 담당자 이메일을 입력하고 <b>메일 작성</b>을 누르면 제목과 본문이 자동으로 들어간 메일 작성창이 열립니다.</p>
+      <p>단, 이 방식은 브라우저에서 메일 프로그램을 열어주는 방식입니다. PDF 파일 자동 첨부까지 하려면 ERP 서버나 메일 발송 API가 필요합니다.</p>
+    </div>
+
+    <div class="control-panel">
+      <div class="control-box">
+        <h2>국내 업체 발주 메일</h2>
+        <label>담당자 이메일</label>
+        <input id="domesticEmail" value="manager@example.co.kr" />
+        <label>메일 제목</label>
+        <input id="domesticSubject" value="[쿠키혼레이저] 발주서 송부드립니다 - PO-20260601-001" />
+        <label>메일 본문</label>
+        <textarea id="domesticBody">안녕하세요.
+
+쿠키혼레이저 발주서 송부드립니다.
+발주번호: PO-20260601-001
+납기 요청일: 2026-06-10
+
+확인 후 회신 부탁드립니다.
+
+감사합니다.
+쿠키혼레이저</textarea>
+        <div class="email-buttons">
+          <button class="primary" onclick="sendMail('domestic')">국내 발주 메일 작성</button>
+          <button onclick="copyMailText('domestic')">메일 내용 복사</button>
+        </div>
+      </div>
+
+      <div class="control-box">
+        <h2>해외 업체 발주 메일</h2>
+        <label>Contact Email</label>
+        <input id="overseasEmail" value="sales@example.com" />
+        <label>Email Subject</label>
+        <input id="overseasSubject" value="[KOOKYHON LASER] Purchase Order - PO-EXP-20260601-001" />
+        <label>Email Body</label>
+        <textarea id="overseasBody">Dear Sir/Madam,
+
+Please find our purchase order details below.
+PO No.: PO-EXP-20260601-001
+Requested delivery date: June 20, 2026
+
+Please confirm availability, lead time, and proforma invoice.
+
+Best regards,
+KOOKYHON LASER</textarea>
+        <div class="email-buttons">
+          <button class="primary" onclick="sendMail('overseas')">해외 발주 메일 작성</button>
+          <button onclick="copyMailText('overseas')">메일 내용 복사</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="templates"></div>
+
+    <div class="template-label">1. 국내 업체용 발주서</div>
+    <section class="paper korean">
+      <div class="top">
+        <div class="brand" contenteditable="true">
+          KOOKYHON LASER
+          <small>레이저 마킹기 · 자동화 장비 · 부품</small>
+        </div>
+        <table class="meta">
+          <tr><th>발주번호</th><td contenteditable="true">PO-20260601-001</td></tr>
+          <tr><th>발주일자</th><td contenteditable="true">2026-06-01</td></tr>
+          <tr><th>담당자</th><td contenteditable="true">홍길동</td></tr>
+        </table>
+      </div>
+
+      <div class="title">발 주 서</div>
+
+      <div class="two-col">
+        <table class="info">
+          <tr><th>발주처</th><td contenteditable="true">쿠키혼레이저</td></tr>
+          <tr><th>사업자번호</th><td contenteditable="true">000-00-00000</td></tr>
+          <tr><th>주소</th><td contenteditable="true">경기도 ○○시 ○○로 00</td></tr>
+          <tr><th>연락처</th><td contenteditable="true">031-000-0000</td></tr>
+          <tr><th>이메일</th><td contenteditable="true">venic@kooky.co.kr</td></tr>
+        </table>
+        <table class="info">
+          <tr><th>공급처</th><td contenteditable="true">○○부품상사</td></tr>
+          <tr><th>담당자</th><td contenteditable="true">김담당</td></tr>
+          <tr><th>연락처</th><td contenteditable="true">010-0000-0000</td></tr>
+          <tr><th>이메일</th><td contenteditable="true">manager@example.co.kr</td></tr>
+          <tr><th>납품장소</th><td contenteditable="true">당사 입고</td></tr>
+        </table>
+      </div>
+
+      <div class="section-title">발주 내역</div>
+      <table class="items">
+        <thead>
+          <tr>
+            <th style="width:45px;">No</th>
+            <th>품목명</th>
+            <th style="width:110px;">규격</th>
+            <th style="width:65px;">수량</th>
+            <th style="width:95px;">단가</th>
+            <th style="width:105px;">금액</th>
+            <th style="width:105px;">납기일</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="center">1</td><td contenteditable="true">레이저 보호렌즈</td><td class="center" contenteditable="true">20mm</td><td class="num" contenteditable="true">10</td><td class="num" contenteditable="true">18,000</td><td class="num" contenteditable="true">180,000</td><td class="center" contenteditable="true">2026-06-10</td></tr>
+          <tr><td class="center">2</td><td contenteditable="true">케이블 세트</td><td class="center" contenteditable="true">3M</td><td class="num" contenteditable="true">5</td><td class="num" contenteditable="true">25,000</td><td class="num" contenteditable="true">125,000</td><td class="center" contenteditable="true">2026-06-12</td></tr>
+          <tr><td class="center">3</td><td contenteditable="true">알루미늄 지그 가공품</td><td class="center" contenteditable="true">A-100</td><td class="num" contenteditable="true">2</td><td class="num" contenteditable="true">150,000</td><td class="num" contenteditable="true">300,000</td><td class="center" contenteditable="true">2026-06-15</td></tr>
+        </tbody>
+      </table>
+
+      <table class="sum">
+        <tr><th>공급가액</th><td contenteditable="true">605,000</td></tr>
+        <tr><th>부가세</th><td contenteditable="true">60,500</td></tr>
+        <tr class="total"><th>합계금액</th><td contenteditable="true">665,500</td></tr>
+      </table>
+
+      <div class="note" contenteditable="true">
+        <b>비고</b><br />
+        납품 전 담당자에게 연락 바랍니다. 세금계산서는 발주일 기준으로 발행 요청드립니다.
+      </div>
+
+      <div class="sign" contenteditable="true">쿠키혼레이저 귀중</div>
+    </section>
+
+    <div class="template-label">2. 해외 업체용 Purchase Order</div>
+    <section class="paper english">
+      <div class="top">
+        <div class="brand" contenteditable="true">
+          KOOKYHON LASER
+          <small>Laser Marking System · Automation · Parts</small>
+        </div>
+        <table class="meta">
+          <tr><th>PO No.</th><td contenteditable="true">PO-EXP-20260601-001</td></tr>
+          <tr><th>Date</th><td contenteditable="true">June 1, 2026</td></tr>
+          <tr><th>Contact</th><td contenteditable="true">Hong Gildong</td></tr>
+        </table>
+      </div>
+
+      <div class="title en">PURCHASE ORDER</div>
+
+      <div class="two-col">
+        <table class="info">
+          <tr><th>Buyer</th><td contenteditable="true">KOOKYHON LASER</td></tr>
+          <tr><th>Business No.</th><td contenteditable="true">000-00-00000</td></tr>
+          <tr><th>Address</th><td contenteditable="true">00, ○○-ro, ○○-si, Gyeonggi-do, Korea</td></tr>
+          <tr><th>Tel.</th><td contenteditable="true">+82-31-000-0000</td></tr>
+          <tr><th>Email</th><td contenteditable="true">venic@kooky.co.kr</td></tr>
+        </table>
+        <table class="info">
+          <tr><th>Supplier</th><td contenteditable="true">ABC Laser Parts Co., Ltd.</td></tr>
+          <tr><th>Contact</th><td contenteditable="true">Sales Manager</td></tr>
+          <tr><th>Email</th><td contenteditable="true">sales@example.com</td></tr>
+          <tr><th>Incoterms</th><td contenteditable="true">EXW / FOB / CIF</td></tr>
+          <tr><th>Destination</th><td contenteditable="true">Korea</td></tr>
+        </table>
+      </div>
+
+      <div class="section-title">Order Items</div>
+      <table class="items">
+        <thead>
+          <tr>
+            <th style="width:45px;">No.</th>
+            <th>Description</th>
+            <th style="width:110px;">Model</th>
+            <th style="width:70px;">Qty</th>
+            <th style="width:95px;">Unit Price</th>
+            <th style="width:105px;">Amount</th>
+            <th style="width:105px;">Delivery</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="center">1</td><td contenteditable="true">F-Theta Lens</td><td class="center" contenteditable="true">1064nm</td><td class="num" contenteditable="true">2</td><td class="num" contenteditable="true">USD 180</td><td class="num" contenteditable="true">USD 360</td><td class="center" contenteditable="true">Jun. 20</td></tr>
+          <tr><td class="center">2</td><td contenteditable="true">Galvo Scanner</td><td class="center" contenteditable="true">10mm</td><td class="num" contenteditable="true">1</td><td class="num" contenteditable="true">USD 850</td><td class="num" contenteditable="true">USD 850</td><td class="center" contenteditable="true">Jun. 20</td></tr>
+          <tr><td class="center">3</td><td contenteditable="true">Control Cable Set</td><td class="center" contenteditable="true">3M</td><td class="num" contenteditable="true">5</td><td class="num" contenteditable="true">USD 20</td><td class="num" contenteditable="true">USD 100</td><td class="center" contenteditable="true">Jun. 25</td></tr>
+        </tbody>
+      </table>
+
+      <table class="sum">
+        <tr><th>Subtotal</th><td contenteditable="true">USD 1,310</td></tr>
+        <tr><th>Shipping</th><td contenteditable="true">TBD</td></tr>
+        <tr class="total"><th>Total</th><td contenteditable="true">USD 1,310</td></tr>
+      </table>
+
+      <div class="terms">
+        <div contenteditable="true"><b>Payment Terms</b><br />T/T in advance or as agreed.</div>
+        <div contenteditable="true"><b>Shipping Terms</b><br />Please confirm lead time, shipping cost, and proforma invoice.</div>
+      </div>
+
+      <div class="note" contenteditable="true">
+        <b>Remarks</b><br />
+        Please include model name, serial number if applicable, and commercial invoice for customs clearance.
+      </div>
+
+      <div class="sign" contenteditable="true">Authorized by KOOKYHON LASER</div>
+    </section>
+  </div>
+
+  <script>
+    function scrollToTemplates() {
+      document.getElementById("templates").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function sendMail(type) {
+      const prefix = type === "domestic" ? "domestic" : "overseas";
+      const to = document.getElementById(prefix + "Email").value.trim();
+      const subject = document.getElementById(prefix + "Subject").value.trim();
+      const body = document.getElementById(prefix + "Body").value.trim();
+
+      if (!to) {
+        alert("담당자 이메일을 입력해 주세요.");
+        return;
+      }
+
+      const mailto = "mailto:" + encodeURIComponent(to)
+        + "?subject=" + encodeURIComponent(subject)
+        + "&body=" + encodeURIComponent(body);
+
+      window.location.href = mailto;
+    }
+
+    async function copyMailText(type) {
+      const prefix = type === "domestic" ? "domestic" : "overseas";
+      const subject = document.getElementById(prefix + "Subject").value.trim();
+      const body = document.getElementById(prefix + "Body").value.trim();
+      const text = "제목: " + subject + "\\n\\n" + body;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("메일 제목과 본문을 복사했습니다.");
+      } catch (e) {
+        alert("복사가 안 되면 본문을 직접 드래그해서 복사해 주세요.");
+      }
+    }
+  </script>
+</body>
+</html>
