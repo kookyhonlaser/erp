@@ -755,6 +755,31 @@
             }
         }
 
+
+
+        function formatNumber(num) {
+            const n = Number(num || 0);
+            return n.toLocaleString('ko-KR');
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value).replaceAll('`', '&#096;');
+        }
+
+        function getValue(id) {
+            const el = document.getElementById(id);
+            return el ? (el.value ?? el.textContent ?? '') : '';
+        }
+
         function setText(id, text) {
             const el = document.getElementById(id);
             if (el) el.textContent = text;
