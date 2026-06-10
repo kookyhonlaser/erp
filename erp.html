@@ -775,6 +775,10 @@
             return escapeHtml(value).replaceAll('`', '&#096;');
         }
 
+        function escapeTextarea(value) {
+            return escapeHtml(value);
+        }
+
         function getValue(id) {
             const el = document.getElementById(id);
             return el ? (el.value ?? el.textContent ?? '') : '';
