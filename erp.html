@@ -364,7 +364,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS MAIL v2</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-FORCE-v3</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -546,66 +546,13 @@
             alert(type === 'domestic' ? '다른 이름으로 저장했습니다.' : 'Saved as a new purchase order.');
             return data;
         };
-        window.po2_mail = async function(type){
-            const d = po2_saveCurrent(type, '하이웍스발송준비', true);
-            if (!d.supplier_email) {
-                alert(type === 'domestic' ? '담당자 이메일을 입력해 주세요.' : 'Contact Email is required.');
-                return;
-            }
-
-            let subject = '';
-            let body = '';
-            let htmlBody = '';
-
-            if (type === 'domestic') {
-                subject = `[쿠키혼레이저] 발주서 송부드립니다 - ${d.po_no}`;
-                body = `안녕하세요.\n\n쿠키혼레이저 발주서 송부드립니다.\n\n발주번호: ${d.po_no}\n발주일자: ${d.po_date}\n납기 요청일: ${d.delivery_date}\n합계금액: ${num(d.total)}원\n\n[발주 품목]\n${d.items.map(i=>`${i.no}. ${i.name} / ${i.spec} / 수량 ${i.qty} / 금액 ${num(i.amount)}원`).join('\n')}\n\n${d.note}\n\n확인 후 회신 부탁드립니다.\n\n감사합니다.\n쿠키혼레이저`;
-            } else {
-                subject = `[KOOKYHON LASER] Purchase Order - ${d.po_no}`;
-                body = `Dear Sir/Madam,\n\nPlease find our purchase order details below.\n\nPO No.: ${d.po_no}\nDate: ${d.po_date}\nRequested delivery date: ${d.delivery_date}\nIncoterms: ${d.incoterms}\nPayment Terms: ${d.payment_terms}\nTotal: ${d.currency} ${num(d.total)}\n\n[Order Items]\n${d.items.map(i=>`${i.no}. ${i.name} / ${i.spec} / Qty ${i.qty} / Amount ${d.currency} ${num(i.amount)}`).join('\n')}\n\n${d.note}\n\nPlease confirm availability, lead time, and proforma invoice.\n\nBest regards,\nKOOKYHON LASER`;
-            }
-
-            htmlBody = body.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('\n','<br>');
-
-            const client = getClient();
-            if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
-                alert('Supabase 연결을 찾지 못했습니다. 로그인 상태와 config.js의 supabaseClient 설정을 확인해 주세요.');
-                return;
-            }
-
-            const ok = confirm(
-                (type === 'domestic'
-                    ? `하이웍스로 메일을 발송할까요?\n\n받는 사람: ${d.supplier_email}\n제목: ${subject}`
-                    : `Send this purchase order by Hiworks?\n\nTo: ${d.supplier_email}\nSubject: ${subject}`)
-            );
-            if (!ok) return;
-
-            try {
-                const { data, error } = await client.functions.invoke('send-po-mail', {
-                    body: {
-                        to: d.supplier_email,
-                        subject,
-                        text: body,
-                        html: htmlBody
-                    }
-                });
-
-                if (error) throw error;
-                if (!data || data.ok !== true) {
-                    throw new Error((data && data.error) ? data.error : '메일 발송 실패');
-                }
-
-                d.status = '하이웍스발송완료';
-                d.updated_at = new Date().toISOString();
-                upsertHistory(d);
-
-                alert(type === 'domestic'
-                    ? '하이웍스 메일 발송이 완료되었습니다.'
-                    : 'Hiworks email has been sent successfully.');
-            } catch (err) {
-                console.error(err);
-                alert((type === 'domestic' ? '하이웍스 메일 발송 실패: ' : 'Hiworks email failed: ') + (err.message || err));
-            }
+        window.po2_mail = function(type){
+            const d = po2_saveCurrent(type, '메일작성', true);
+            if (!d.supplier_email) { alert(type === 'domestic' ? '담당자 이메일을 입력해 주세요.' : 'Contact Email is required.'); return; }
+            let subject='', body='';
+            if (type === 'domestic') { subject = `[쿠키혼레이저] 발주서 송부드립니다 - ${d.po_no}`; body = `안녕하세요.\n\n쿠키혼레이저 발주서 송부드립니다.\n\n발주번호: ${d.po_no}\n발주일자: ${d.po_date}\n납기 요청일: ${d.delivery_date}\n합계금액: ${num(d.total)}원\n\n[발주 품목]\n${d.items.map(i=>`${i.no}. ${i.name} / ${i.spec} / 수량 ${i.qty} / 금액 ${num(i.amount)}원`).join('\n')}\n\n${d.note}\n\n확인 후 회신 부탁드립니다.\n\n감사합니다.\n쿠키혼레이저`; }
+            else { subject = `[KOOKYHON LASER] Purchase Order - ${d.po_no}`; body = `Dear Sir/Madam,\n\nPlease find our purchase order details below.\n\nPO No.: ${d.po_no}\nDate: ${d.po_date}\nRequested delivery date: ${d.delivery_date}\nIncoterms: ${d.incoterms}\nPayment Terms: ${d.payment_terms}\nTotal: ${d.currency} ${num(d.total)}\n\n[Order Items]\n${d.items.map(i=>`${i.no}. ${i.name} / ${i.spec} / Qty ${i.qty} / Amount ${d.currency} ${num(i.amount)}`).join('\n')}\n\n${d.note}\n\nPlease confirm availability, lead time, and proforma invoice.\n\nBest regards,\nKOOKYHON LASER`; }
+            window.location.href = `mailto:${encodeURIComponent(d.supplier_email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         };
 
         window.po2_print = function(type){
@@ -805,5 +752,174 @@
             }
         };
     </script>
+
+<script id="hiworks-mail-force-v3">
+(function () {
+  const PATCH_VERSION = "HIWORKS-FORCE-v3";
+
+  function po2FindSupabaseClient() {
+    const list = [];
+    try { if (window.supabaseClient) list.push(window.supabaseClient); } catch (e) {}
+    try { if (window.db) list.push(window.db); } catch (e) {}
+    try { if (window.client) list.push(window.client); } catch (e) {}
+    try { if (typeof supabaseClient !== "undefined") list.push(supabaseClient); } catch (e) {}
+    try { if (typeof db !== "undefined") list.push(db); } catch (e) {}
+    try { if (typeof client !== "undefined") list.push(client); } catch (e) {}
+    return list.find(c => c && c.functions && typeof c.functions.invoke === "function") || null;
+  }
+
+  function po2Num(v) {
+    return Number(v || 0).toLocaleString("ko-KR");
+  }
+
+  function po2MakeMailBody(type, d) {
+    if (type === "domestic") {
+      return {
+        subject: `[쿠키혼레이저] 발주서 송부드립니다 - ${d.po_no}`,
+        text:
+`안녕하세요.
+
+쿠키혼레이저 발주서 송부드립니다.
+
+발주번호: ${d.po_no}
+발주일자: ${d.po_date}
+납기 요청일: ${d.delivery_date}
+합계금액: ${po2Num(d.total)}원
+
+[발주 품목]
+${(d.items || []).map(i => `${i.no}. ${i.name} / ${i.spec} / 수량 ${i.qty} / 금액 ${po2Num(i.amount)}원`).join("\n")}
+
+${d.note || ""}
+
+확인 후 회신 부탁드립니다.
+
+감사합니다.
+쿠키혼레이저`
+      };
+    }
+
+    return {
+      subject: `[KOOKYHON LASER] Purchase Order - ${d.po_no}`,
+      text:
+`Dear Sir/Madam,
+
+Please find our purchase order details below.
+
+PO No.: ${d.po_no}
+Date: ${d.po_date}
+Requested delivery date: ${d.delivery_date}
+Incoterms: ${d.incoterms || ""}
+Payment Terms: ${d.payment_terms || ""}
+Total: ${d.currency || ""} ${po2Num(d.total)}
+
+[Order Items]
+${(d.items || []).map(i => `${i.no}. ${i.name} / ${i.spec} / Qty ${i.qty} / Amount ${d.currency || ""} ${po2Num(i.amount)}`).join("\n")}
+
+${d.note || ""}
+
+Please confirm availability, lead time, and proforma invoice.
+
+Best regards,
+KOOKYHON LASER`
+    };
+  }
+
+  function po2InstallHiworksMail() {
+    window.po2_mail = async function (type) {
+      const kind = type === "overseas" ? "overseas" : "domestic";
+
+      if (typeof window.po2_saveCurrent !== "function") {
+        alert("발주서 저장 함수(po2_saveCurrent)를 찾지 못했습니다. 새 ERP 파일이 제대로 적용되었는지 확인해 주세요.");
+        return;
+      }
+
+      const d = window.po2_saveCurrent(kind, "하이웍스발송준비", true);
+      if (!d || !d.supplier_email) {
+        alert(kind === "domestic" ? "담당자 이메일을 입력해 주세요." : "Contact Email is required.");
+        return;
+      }
+
+      const client = po2FindSupabaseClient();
+      if (!client) {
+        alert("Supabase 연결을 찾지 못했습니다.\nconfig.js에서 supabaseClient 또는 db가 전역으로 만들어져 있는지 확인이 필요합니다.");
+        return;
+      }
+
+      const mail = po2MakeMailBody(kind, d);
+      const html = mail.text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\n", "<br>");
+
+      const ok = confirm(
+        kind === "domestic"
+          ? `하이웍스로 메일을 발송할까요?\n\n받는 사람: ${d.supplier_email}\n제목: ${mail.subject}`
+          : `Send this PO by Hiworks?\n\nTo: ${d.supplier_email}\nSubject: ${mail.subject}`
+      );
+      if (!ok) return;
+
+      try {
+        const { data, error } = await client.functions.invoke("send-po-mail", {
+          body: {
+            to: d.supplier_email,
+            subject: mail.subject,
+            text: mail.text,
+            html: html
+          }
+        });
+
+        if (error) throw error;
+        if (!data || data.ok !== true) {
+          throw new Error((data && data.error) ? data.error : "메일 발송 실패");
+        }
+
+        d.status = "하이웍스발송완료";
+        d.updated_at = new Date().toISOString();
+
+        try {
+          const key = "kooky_po_history_clean_v1";
+          const arr = JSON.parse(localStorage.getItem(key) || "[]");
+          const idx = arr.findIndex(x => x.id === d.id);
+          if (idx >= 0) arr[idx] = d; else arr.unshift(d);
+          localStorage.setItem(key, JSON.stringify(arr));
+        } catch (e) {}
+
+        alert(kind === "domestic" ? "하이웍스 메일 발송 완료" : "Hiworks email sent successfully.");
+      } catch (err) {
+        console.error(err);
+        alert((kind === "domestic" ? "하이웍스 메일 발송 실패: " : "Hiworks email failed: ") + (err.message || err));
+      }
+    };
+
+    document.querySelectorAll("button").forEach(btn => {
+      const onclickText = btn.getAttribute("onclick") || "";
+      const text = (btn.textContent || "").trim();
+
+      if (onclickText.includes("po2_mail") || text === "메일 작성" || text === "Email") {
+        const type = onclickText.includes("overseas") ? "overseas" : "domestic";
+        btn.setAttribute("onclick", `po2_mail('${type}')`);
+        btn.textContent = type === "domestic" ? "하이웍스 발송" : "Send Hiworks";
+        btn.classList.remove("bg-blue-600", "bg-cyan-600");
+        btn.classList.add("bg-purple-600");
+      }
+    });
+
+    if (!document.getElementById("hiworksPatchMark")) {
+      const mark = document.createElement("div");
+      mark.id = "hiworksPatchMark";
+      mark.textContent = PATCH_VERSION;
+      mark.style.cssText = "position:fixed;right:10px;bottom:10px;z-index:99999;background:#6d28d9;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85";
+      document.body.appendChild(mark);
+    }
+  }
+
+  po2InstallHiworksMail();
+
+  const observer = new MutationObserver(() => po2InstallHiworksMail());
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
 </body>
 </html>
