@@ -364,7 +364,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-FORCE-v3</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-PDF-HISTORY-v4</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -462,7 +462,7 @@
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
                     <input type="hidden" id="dom_po_id" value="${attr(d.id)}">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">국내용 발주서</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">하이웍스 발송</button></div></div>
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">국내용 발주서</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">PDF 첨부 하이웍스 발송</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-4 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">발주번호</label><input id="dom_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">발주일자</label><input id="dom_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">작성자</label><input id="dom_writer" class="input-box" value="${attr(d.writer)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">납기 요청일</label><input id="dom_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -487,7 +487,7 @@
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
                     <input type="hidden" id="exp_po_id" value="${attr(d.id)}">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">해외용 Purchase Order</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send Hiworks</button></div></div>
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">해외용 Purchase Order</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send PDF by Hiworks</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-5 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">PO No.</label><input id="exp_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Date</label><input id="exp_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Currency</label><select id="exp_currency" class="input-box" onchange="po2_calc('overseas')">${['USD','EUR','JPY','CNY','KRW'].map(c => `<option ${c === (d.currency || 'USD') ? 'selected' : ''}>${c}</option>`).join('')}</select></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Incoterms</label><input id="exp_incoterms" class="input-box" value="${attr(d.incoterms)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Delivery Request</label><input id="exp_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -672,6 +672,8 @@
             </div></div>`;
         }
 
+        window.po2_buildPrintHtml = printHtml;
+
         function getClient(){
             const arr=[];
             try{ if(window.supabaseClient) arr.push(window.supabaseClient); }catch(e){}
@@ -755,7 +757,7 @@
 
 <script id="hiworks-mail-force-v3">
 (function () {
-  const PATCH_VERSION = "HIWORKS-FORCE-v3";
+  const PATCH_VERSION = "HIWORKS-PDF-HISTORY-v4";
 
   function po2FindSupabaseClient() {
     const list = [];
@@ -918,6 +920,403 @@ KOOKYHON LASER`
 
   const observer = new MutationObserver(() => po2InstallHiworksMail());
   observer.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
+
+<script id="hiworks-mail-pdf-history-v4">
+(function () {
+  const PATCH_VERSION = "HIWORKS-PDF-HISTORY-v4";
+  const MAIL_LOG_KEY = "kooky_po_mail_logs_v1";
+
+  function findSupabaseClient() {
+    const list = [];
+    try { if (window.supabaseClient) list.push(window.supabaseClient); } catch (e) {}
+    try { if (window.db) list.push(window.db); } catch (e) {}
+    try { if (window.client) list.push(window.client); } catch (e) {}
+    try { if (typeof supabaseClient !== "undefined") list.push(supabaseClient); } catch (e) {}
+    try { if (typeof db !== "undefined") list.push(db); } catch (e) {}
+    try { if (typeof client !== "undefined") list.push(client); } catch (e) {}
+    return list.find(c => c && c.functions && typeof c.functions.invoke === "function") || null;
+  }
+
+  function num(v) {
+    return Number(v || 0).toLocaleString("ko-KR");
+  }
+
+  function esc(v) {
+    return String(v ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function loadMailLogs() {
+    try {
+      const arr = JSON.parse(localStorage.getItem(MAIL_LOG_KEY) || "[]");
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveMailLog(log) {
+    const arr = loadMailLogs();
+    arr.unshift({
+      id: "mail_" + Date.now(),
+      sent_at: new Date().toISOString(),
+      ...log
+    });
+    localStorage.setItem(MAIL_LOG_KEY, JSON.stringify(arr.slice(0, 300)));
+  }
+
+  function makeMail(type, d) {
+    if (type === "domestic") {
+      const text =
+`안녕하세요.
+
+쿠키혼레이저 발주서 송부드립니다.
+
+발주번호: ${d.po_no}
+발주일자: ${d.po_date}
+납기 요청일: ${d.delivery_date}
+합계금액: ${num(d.total)}원
+
+[발주 품목]
+${(d.items || []).map(i => `${i.no}. ${i.name} / ${i.spec} / 수량 ${i.qty} / 금액 ${num(i.amount)}원`).join("\n")}
+
+첨부된 PDF 발주서를 확인 부탁드립니다.
+
+${d.note || ""}
+
+확인 후 회신 부탁드립니다.
+
+감사합니다.
+쿠키혼레이저`;
+      return {
+        subject: `[쿠키혼레이저] 발주서 송부드립니다 - ${d.po_no}`,
+        text
+      };
+    }
+
+    const text =
+`Dear Sir/Madam,
+
+Please find attached our purchase order.
+
+PO No.: ${d.po_no}
+Date: ${d.po_date}
+Requested delivery date: ${d.delivery_date}
+Incoterms: ${d.incoterms || ""}
+Payment Terms: ${d.payment_terms || ""}
+Total: ${d.currency || ""} ${num(d.total)}
+
+[Order Items]
+${(d.items || []).map(i => `${i.no}. ${i.name} / ${i.spec} / Qty ${i.qty} / Amount ${d.currency || ""} ${num(i.amount)}`).join("\n")}
+
+${d.note || ""}
+
+Please confirm availability, lead time, and proforma invoice.
+
+Best regards,
+KOOKYHON LASER`;
+    return {
+      subject: `[KOOKYHON LASER] Purchase Order - ${d.po_no}`,
+      text
+    };
+  }
+
+  async function loadHtml2Pdf() {
+    if (window.html2pdf) return;
+
+    await new Promise((resolve, reject) => {
+      const old = document.querySelector('script[data-hiworks-html2pdf="1"]');
+      if (old) {
+        old.addEventListener("load", resolve);
+        old.addEventListener("error", reject);
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+      script.async = true;
+      script.dataset.hiworksHtml2pdf = "1";
+      script.onload = resolve;
+      script.onerror = () => reject(new Error("html2pdf 라이브러리를 불러오지 못했습니다."));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function makePdfAttachment(type, d) {
+    await loadHtml2Pdf();
+
+    if (typeof window.po2_buildPrintHtml !== "function") {
+      throw new Error("출력물 생성 함수(po2_buildPrintHtml)를 찾지 못했습니다.");
+    }
+
+    const filename = `${d.po_no || "purchase_order"}_${type === "domestic" ? "domestic" : "abroad"}.pdf`;
+
+    const holder = document.createElement("div");
+    holder.id = "po2_pdf_capture_holder";
+    holder.style.cssText = [
+      "position:fixed",
+      "left:-10000px",
+      "top:0",
+      "width:210mm",
+      "background:#fff",
+      "z-index:-1"
+    ].join(";");
+
+    holder.innerHTML = window.po2_buildPrintHtml(type, d);
+    document.body.appendChild(holder);
+
+    try {
+      const target = holder.querySelector(".po-page") || holder;
+
+      const dataUri = await window.html2pdf()
+        .set({
+          margin: 0,
+          filename,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            scrollX: 0,
+            scrollY: 0
+          },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+        })
+        .from(target)
+        .outputPdf("datauristring");
+
+      const base64 = String(dataUri).split(",").pop();
+
+      if (!base64 || base64.length < 1000) {
+        throw new Error("PDF 생성 결과가 비어 있습니다.");
+      }
+
+      return {
+        attachmentBase64: base64,
+        attachmentName: filename,
+        attachmentMime: "application/pdf"
+      };
+    } finally {
+      holder.remove();
+    }
+  }
+
+  function renderMailHistoryPanel() {
+    const content = document.getElementById("contentArea");
+    if (!content) return;
+
+    const main = content.querySelector(".max-w-7xl");
+    if (!main) return;
+
+    let panel = document.getElementById("po2_mail_history_panel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.id = "po2_mail_history_panel";
+      panel.className = "bg-white rounded-2xl shadow p-6 mt-8";
+      panel.innerHTML = `
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-5">
+          <div>
+            <h2 class="text-2xl font-black text-slate-800">메일 발송 이력</h2>
+            <p class="text-sm text-slate-500 mt-1">하이웍스로 발송한 발주서 메일 기록입니다. 현재는 이 PC/브라우저에 저장됩니다.</p>
+          </div>
+          <button type="button" onclick="po2_renderMailHistory()" class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-bold hover:bg-purple-200 text-sm">
+            <i class="fa-solid fa-rotate mr-1"></i>이력 새로고침
+          </button>
+        </div>
+        <div class="overflow-x-auto border rounded-xl">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-100">
+              <tr>
+                <th class="p-3 text-left">발송일시</th>
+                <th class="p-3 text-left">구분</th>
+                <th class="p-3 text-left">발주번호</th>
+                <th class="p-3 text-left">받는 사람</th>
+                <th class="p-3 text-left">제목</th>
+                <th class="p-3 text-left">첨부파일</th>
+                <th class="p-3 text-left">상태</th>
+              </tr>
+            </thead>
+            <tbody id="po2_mail_history_body"></tbody>
+          </table>
+        </div>`;
+      main.appendChild(panel);
+    }
+
+    window.po2_renderMailHistory();
+  }
+
+  window.po2_renderMailHistory = function () {
+    const body = document.getElementById("po2_mail_history_body");
+    if (!body) return;
+
+    const logs = loadMailLogs();
+    if (!logs.length) {
+      body.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">아직 하이웍스 메일 발송 이력이 없습니다.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = logs.slice(0, 50).map(log => {
+      const sentAt = log.sent_at ? new Date(log.sent_at).toLocaleString("ko-KR") : "";
+      const typeText = log.type === "overseas" ? "해외용" : "국내용";
+      const statusClass = log.ok ? "text-emerald-600" : "text-red-600";
+      return `
+        <tr class="border-t hover:bg-slate-50">
+          <td class="p-3 whitespace-nowrap">${esc(sentAt)}</td>
+          <td class="p-3">${typeText}</td>
+          <td class="p-3 font-bold">${esc(log.po_no)}</td>
+          <td class="p-3">${esc(log.to)}</td>
+          <td class="p-3">${esc(log.subject)}</td>
+          <td class="p-3">${esc(log.attachmentName || "")}</td>
+          <td class="p-3 font-bold ${statusClass}">${log.ok ? "성공" : "실패"}${log.error ? " - " + esc(log.error) : ""}</td>
+        </tr>`;
+    }).join("");
+  };
+
+  const originalOpenMenu = window.po2_openMenu;
+  if (typeof originalOpenMenu === "function" && !window.__po2OpenMenuMailHistoryWrapped) {
+    window.po2_openMenu = function (btn) {
+      originalOpenMenu(btn);
+      setTimeout(renderMailHistoryPanel, 80);
+    };
+    window.__po2OpenMenuMailHistoryWrapped = true;
+  }
+
+  function installButtons() {
+    document.querySelectorAll("button").forEach(btn => {
+      const onclickText = btn.getAttribute("onclick") || "";
+      const text = (btn.textContent || "").trim();
+
+      if (onclickText.includes("po2_mail") || text === "메일 작성" || text === "Email" || text === "하이웍스 발송" || text === "Send Hiworks") {
+        const type = onclickText.includes("overseas") || text.includes("Send") ? "overseas" : "domestic";
+        btn.setAttribute("onclick", `po2_mail('${type}')`);
+        btn.textContent = type === "domestic" ? "PDF 첨부 하이웍스 발송" : "Send PDF by Hiworks";
+        btn.classList.remove("bg-blue-600", "bg-cyan-600");
+        btn.classList.add("bg-purple-600");
+      }
+    });
+
+    if (!document.getElementById("hiworksPatchMark")) {
+      const mark = document.createElement("div");
+      mark.id = "hiworksPatchMark";
+      mark.textContent = PATCH_VERSION;
+      mark.style.cssText = "position:fixed;right:10px;bottom:10px;z-index:99999;background:#6d28d9;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85";
+      document.body.appendChild(mark);
+    } else {
+      document.getElementById("hiworksPatchMark").textContent = PATCH_VERSION;
+    }
+  }
+
+  window.po2_mail = async function (type) {
+    const kind = type === "overseas" ? "overseas" : "domestic";
+
+    if (typeof window.po2_saveCurrent !== "function") {
+      alert("발주서 저장 함수(po2_saveCurrent)를 찾지 못했습니다.");
+      return;
+    }
+
+    const d = window.po2_saveCurrent(kind, "하이웍스발송준비", true);
+    if (!d || !d.supplier_email) {
+      alert(kind === "domestic" ? "담당자 이메일을 입력해 주세요." : "Contact Email is required.");
+      return;
+    }
+
+    const client = findSupabaseClient();
+    if (!client) {
+      alert("Supabase 연결을 찾지 못했습니다. 로그인 상태와 config.js의 supabaseClient 설정을 확인해 주세요.");
+      return;
+    }
+
+    const mail = makeMail(kind, d);
+    const html = mail.text
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll("\n", "<br>");
+
+    const ok = confirm(
+      kind === "domestic"
+        ? `PDF 발주서를 첨부해서 하이웍스로 메일을 발송할까요?\n\n받는 사람: ${d.supplier_email}\n제목: ${mail.subject}`
+        : `Send this PO with PDF attachment by Hiworks?\n\nTo: ${d.supplier_email}\nSubject: ${mail.subject}`
+    );
+    if (!ok) return;
+
+    let attachment;
+    try {
+      alert(kind === "domestic" ? "PDF 파일을 생성한 뒤 메일을 발송합니다. 잠시만 기다려 주세요." : "Generating PDF and sending email. Please wait.");
+      attachment = await makePdfAttachment(kind, d);
+
+      const { data, error } = await client.functions.invoke("send-po-mail", {
+        body: {
+          to: d.supplier_email,
+          subject: mail.subject,
+          text: mail.text,
+          html,
+          ...attachment
+        }
+      });
+
+      if (error) throw error;
+      if (!data || data.ok !== true) {
+        throw new Error((data && data.error) ? data.error : "메일 발송 실패");
+      }
+
+      d.status = "하이웍스발송완료";
+      d.updated_at = new Date().toISOString();
+
+      try {
+        const key = "kooky_po_history_clean_v1";
+        const arr = JSON.parse(localStorage.getItem(key) || "[]");
+        const idx = arr.findIndex(x => x.id === d.id);
+        if (idx >= 0) arr[idx] = d; else arr.unshift(d);
+        localStorage.setItem(key, JSON.stringify(arr));
+      } catch (e) {}
+
+      saveMailLog({
+        ok: true,
+        type: kind,
+        po_no: d.po_no,
+        to: d.supplier_email,
+        subject: mail.subject,
+        attachmentName: attachment.attachmentName,
+        messageId: data.messageId || ""
+      });
+
+      window.po2_renderMailHistory && window.po2_renderMailHistory();
+
+      alert(kind === "domestic"
+        ? `PDF 첨부 하이웍스 메일 발송 완료\n첨부파일: ${attachment.attachmentName}`
+        : `Hiworks email sent with PDF attachment.\nAttachment: ${attachment.attachmentName}`);
+    } catch (err) {
+      console.error(err);
+
+      saveMailLog({
+        ok: false,
+        type: kind,
+        po_no: d.po_no,
+        to: d.supplier_email,
+        subject: mail.subject,
+        attachmentName: attachment ? attachment.attachmentName : "",
+        error: err.message || String(err)
+      });
+
+      window.po2_renderMailHistory && window.po2_renderMailHistory();
+
+      alert((kind === "domestic" ? "PDF 첨부 하이웍스 메일 발송 실패: " : "Hiworks PDF email failed: ") + (err.message || err));
+    }
+  };
+
+  installButtons();
+  const observer = new MutationObserver(installButtons);
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  setTimeout(renderMailHistoryPanel, 300);
 })();
 </script>
 
