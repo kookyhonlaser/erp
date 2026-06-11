@@ -364,7 +364,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-PDF-HISTORY-v4</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-PDF-HISTORY-v5-NO-FREEZE</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -757,7 +757,7 @@
 
 <script id="hiworks-mail-force-v3">
 (function () {
-  const PATCH_VERSION = "HIWORKS-PDF-HISTORY-v4";
+  const PATCH_VERSION = "HIWORKS-PDF-HISTORY-v5-NO-FREEZE";
 
   function po2FindSupabaseClient() {
     const list = [];
@@ -926,7 +926,7 @@ KOOKYHON LASER`
 
 <script id="hiworks-mail-pdf-history-v4">
 (function () {
-  const PATCH_VERSION = "HIWORKS-PDF-HISTORY-v4";
+  const PATCH_VERSION = "HIWORKS-PDF-HISTORY-v5-NO-FREEZE";
   const MAIL_LOG_KEY = "kooky_po_mail_logs_v1";
 
   function findSupabaseClient() {
@@ -1195,21 +1195,31 @@ KOOKYHON LASER`;
 
       if (onclickText.includes("po2_mail") || text === "메일 작성" || text === "Email" || text === "하이웍스 발송" || text === "Send Hiworks") {
         const type = onclickText.includes("overseas") || text.includes("Send") ? "overseas" : "domestic";
-        btn.setAttribute("onclick", `po2_mail('${type}')`);
-        btn.textContent = type === "domestic" ? "PDF 첨부 하이웍스 발송" : "Send PDF by Hiworks";
-        btn.classList.remove("bg-blue-600", "bg-cyan-600");
-        btn.classList.add("bg-purple-600");
+        const nextOnclick = `po2_mail('${type}')`;
+        const nextText = type === "domestic" ? "PDF 첨부 하이웍스 발송" : "Send PDF by Hiworks";
+
+        if (btn.getAttribute("onclick") !== nextOnclick) {
+          btn.setAttribute("onclick", nextOnclick);
+        }
+        if ((btn.textContent || "").trim() !== nextText) {
+          btn.textContent = nextText;
+        }
+        if (!btn.classList.contains("bg-purple-600")) {
+          btn.classList.remove("bg-blue-600", "bg-cyan-600");
+          btn.classList.add("bg-purple-600");
+        }
       }
     });
 
-    if (!document.getElementById("hiworksPatchMark")) {
-      const mark = document.createElement("div");
-      mark.id = "hiworksPatchMark";
+    const mark = document.getElementById("hiworksPatchMark");
+    if (!mark) {
+      const newMark = document.createElement("div");
+      newMark.id = "hiworksPatchMark";
+      newMark.textContent = PATCH_VERSION;
+      newMark.style.cssText = "position:fixed;right:10px;bottom:10px;z-index:99999;background:#6d28d9;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85";
+      document.body.appendChild(newMark);
+    } else if (mark.textContent !== PATCH_VERSION) {
       mark.textContent = PATCH_VERSION;
-      mark.style.cssText = "position:fixed;right:10px;bottom:10px;z-index:99999;background:#6d28d9;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85";
-      document.body.appendChild(mark);
-    } else {
-      document.getElementById("hiworksPatchMark").textContent = PATCH_VERSION;
     }
   }
 
@@ -1313,8 +1323,15 @@ KOOKYHON LASER`;
   };
 
   installButtons();
-  const observer = new MutationObserver(installButtons);
-  observer.observe(document.body, { childList: true, subtree: true });
+
+  // 화면 전환 직후 버튼이 다시 만들어질 수 있으므로 짧은 시간만 재확인합니다.
+  // MutationObserver를 계속 켜두면 ERP 화면이 멈출 수 있어서 사용하지 않습니다.
+  let installCount = 0;
+  const installTimer = setInterval(() => {
+    installButtons();
+    installCount++;
+    if (installCount >= 10) clearInterval(installTimer);
+  }, 500);
 
   setTimeout(renderMailHistoryPanel, 300);
 })();
