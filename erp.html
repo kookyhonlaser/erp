@@ -364,7 +364,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-HTML-TABLE-v10</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-WEB-LINK-v11</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -462,7 +462,7 @@
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
                     <input type="hidden" id="dom_po_id" value="${attr(d.id)}">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">국내용 발주서</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">표 형식 본문 발주서 발송</button></div></div>
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">국내용 발주서</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">웹 발주서 링크 하이웍스 발송</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-4 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">발주번호</label><input id="dom_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">발주일자</label><input id="dom_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">작성자</label><input id="dom_writer" class="input-box" value="${attr(d.writer)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">납기 요청일</label><input id="dom_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -487,7 +487,7 @@
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
                     <input type="hidden" id="exp_po_id" value="${attr(d.id)}">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">해외용 Purchase Order</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send Table PO</button></div></div>
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">해외용 Purchase Order</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send Web PO Link</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-5 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">PO No.</label><input id="exp_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Date</label><input id="exp_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Currency</label><select id="exp_currency" class="input-box" onchange="po2_calc('overseas')">${['USD','EUR','JPY','CNY','KRW'].map(c => `<option ${c === (d.currency || 'USD') ? 'selected' : ''}>${c}</option>`).join('')}</select></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Incoterms</label><input id="exp_incoterms" class="input-box" value="${attr(d.incoterms)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Delivery Request</label><input id="exp_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -601,7 +601,7 @@
                 <div class="flex flex-wrap justify-between items-center gap-3 mb-5">
                     <div>
                         <h2 class="text-2xl font-black text-slate-800">메일 발송 이력</h2>
-                        <p class="text-sm text-slate-500 mt-1">표 형식 본문 발주서 발송 기록입니다. 현재는 이 PC/브라우저에 저장됩니다.</p>
+                        <p class="text-sm text-slate-500 mt-1">웹 발주서 링크 하이웍스 발송 기록입니다. 현재는 이 PC/브라우저에 저장됩니다.</p>
                     </div>
                     <button type="button" onclick="po2_renderMailHistory()" class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-bold hover:bg-purple-200 text-sm">
                         <i class="fa-solid fa-rotate mr-1"></i>이력 새로고침
@@ -855,47 +855,138 @@
             </div>`;
         }
 
+        async function po2_createPublicPoLink(type, d){
+            const client = getClient();
+            if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
+                throw new Error('Supabase 연결을 찾지 못했습니다.');
+            }
+            const { data, error } = await client.functions.invoke('create-po-link', { body: { type, po: d } });
+            if (error) throw error;
+            if (!data || data.ok !== true || !data.url) {
+                throw new Error((data && data.error) ? data.error : '발주서 웹 링크 생성 실패');
+            }
+            return data;
+        }
+
+        function po2_makeWebLinkMail(type, d, linkUrl){
+            if (type === 'domestic') {
+                const subject = `[쿠키혼레이저] 발주서 송부드립니다 - ${d.po_no}`;
+                const text = `안녕하세요.
+
+쿠키혼레이저 발주서 송부드립니다.
+
+아래 링크를 클릭하면 발주서를 웹페이지에서 확인하고 바로 인쇄하실 수 있습니다.
+
+발주서 보기/인쇄:
+${linkUrl}
+
+발주번호: ${d.po_no}
+발주일자: ${d.po_date}
+납기 요청일: ${d.delivery_date}
+합계금액: ${num(d.total)}원
+
+확인 후 회신 부탁드립니다.
+
+감사합니다.
+쿠키혼레이저`;
+
+                const html = `
+                    <div style="font-family:'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif;color:#111;line-height:1.6;">
+                        <p>안녕하세요.</p>
+                        <p>쿠키혼레이저 발주서 송부드립니다.</p>
+                        <p>아래 버튼을 클릭하면 발주서를 웹페이지에서 확인하고 바로 인쇄하실 수 있습니다.</p>
+                        <p style="margin:24px 0;">
+                            <a href="${esc(linkUrl)}" target="_blank" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:14px 22px;border-radius:8px;font-weight:900;font-size:16px;">
+                                발주서 보기 / 인쇄
+                            </a>
+                        </p>
+                        <table style="border-collapse:collapse;font-size:14px;margin:14px 0;">
+                            <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">발주번호</th><td style="border:1px solid #ccc;padding:8px 12px;">${esc(d.po_no)}</td></tr>
+                            <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">발주일자</th><td style="border:1px solid #ccc;padding:8px 12px;">${esc(d.po_date)}</td></tr>
+                            <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">납기 요청일</th><td style="border:1px solid #ccc;padding:8px 12px;">${esc(d.delivery_date)}</td></tr>
+                            <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">합계금액</th><td style="border:1px solid #ccc;padding:8px 12px;font-weight:900;">${num(d.total)}원</td></tr>
+                        </table>
+                        <p>확인 후 회신 부탁드립니다.</p>
+                        <p>감사합니다.<br>쿠키혼레이저</p>
+                    </div>`;
+                return { subject, text, html };
+            }
+
+            const subject = `[KOOKYHON LASER] Purchase Order - ${d.po_no}`;
+            const text = `Dear Sir/Madam,
+
+Please find our purchase order link below.
+
+You can open the purchase order webpage and print it directly.
+
+View / Print Purchase Order:
+${linkUrl}
+
+PO No.: ${d.po_no}
+Date: ${d.po_date}
+Requested delivery date: ${d.delivery_date}
+Total: ${d.currency} ${num(d.total)}
+
+Please confirm availability, lead time, and proforma invoice.
+
+Best regards,
+KOOKYHON LASER`;
+
+            const html = `
+                <div style="font-family:Arial,sans-serif;color:#111;line-height:1.6;">
+                    <p>Dear Sir/Madam,</p>
+                    <p>Please find our purchase order link below.</p>
+                    <p>You can open the purchase order webpage and print it directly.</p>
+                    <p style="margin:24px 0;">
+                        <a href="${esc(linkUrl)}" target="_blank" style="display:inline-block;background:#0891b2;color:#fff;text-decoration:none;padding:14px 22px;border-radius:8px;font-weight:900;font-size:16px;">
+                            View / Print Purchase Order
+                        </a>
+                    </p>
+                    <table style="border-collapse:collapse;font-size:14px;margin:14px 0;">
+                        <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">PO No.</th><td style="border:1px solid #ccc;padding:8px 12px;">${esc(d.po_no)}</td></tr>
+                        <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">Date</th><td style="border:1px solid #ccc;padding:8px 12px;">${esc(d.po_date)}</td></tr>
+                        <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">Delivery</th><td style="border:1px solid #ccc;padding:8px 12px;">${esc(d.delivery_date)}</td></tr>
+                        <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">Total</th><td style="border:1px solid #ccc;padding:8px 12px;font-weight:900;">${esc(d.currency)} ${num(d.total)}</td></tr>
+                    </table>
+                    <p>Please confirm availability, lead time, and proforma invoice.</p>
+                    <p>Best regards,<br>KOOKYHON LASER</p>
+                </div>`;
+            return { subject, text, html };
+        }
+
         window.po2_mail = async function(type){
-            const d = po2_saveCurrent(type, '하이웍스발송준비', true);
+            const d = po2_saveCurrent(type, '웹링크발송준비', true);
             if (!d.supplier_email) {
                 alert(type === 'domestic' ? '담당자 이메일을 입력해 주세요.' : 'Contact Email is required.');
                 return;
             }
 
-            let subject = '';
-            let body = '';
-            let htmlBody = '';
-
-            if (type === 'domestic') {
-                subject = `[쿠키혼레이저] 발주서 송부드립니다 - ${d.po_no}`;
-                body = `안녕하세요.\n\n쿠키혼레이저 발주서 송부드립니다.\n\n발주번호: ${d.po_no}\n발주일자: ${d.po_date}\n납기 요청일: ${d.delivery_date}\n합계금액: ${num(d.total)}원\n\n[발주 품목]\n${d.items.map(i=>`${i.no}. ${i.name} / ${i.spec} / 수량 ${i.qty} / 금액 ${num(i.amount)}원`).join('\n')}\n\n${d.note}\n\n확인 후 회신 부탁드립니다.\n\n감사합니다.\n쿠키혼레이저`;
-            } else {
-                subject = `[KOOKYHON LASER] Purchase Order - ${d.po_no}`;
-                body = `Dear Sir/Madam,\n\nPlease find our purchase order details below.\n\nPO No.: ${d.po_no}\nDate: ${d.po_date}\nRequested delivery date: ${d.delivery_date}\nIncoterms: ${d.incoterms}\nPayment Terms: ${d.payment_terms}\nTotal: ${d.currency} ${num(d.total)}\n\n[Order Items]\n${d.items.map(i=>`${i.no}. ${i.name} / ${i.spec} / Qty ${i.qty} / Amount ${d.currency} ${num(i.amount)}`).join('\n')}\n\n${d.note}\n\nPlease confirm availability, lead time, and proforma invoice.\n\nBest regards,\nKOOKYHON LASER`;
-            }
-
-            htmlBody = po2_makeEmailDocumentHtml(type, d);
-
-            const client = getClient();
-            if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
-                alert('Supabase 연결을 찾지 못했습니다. 로그인 상태와 config.js의 supabaseClient 설정을 확인해 주세요.');
-                return;
-            }
-
             const ok = confirm(
                 (type === 'domestic'
-                    ? `하이웍스로 메일을 발송할까요?\n\n받는 사람: ${d.supplier_email}\n제목: ${subject}`
-                    : `Send this purchase order by Hiworks?\n\nTo: ${d.supplier_email}\nSubject: ${subject}`)
+                    ? `발주서 웹페이지 링크를 만들어 하이웍스로 메일을 발송할까요?\n\n받는 사람: ${d.supplier_email}\n발주번호: ${d.po_no}`
+                    : `Create a PO webpage link and send it by Hiworks?\n\nTo: ${d.supplier_email}\nPO No.: ${d.po_no}`)
             );
             if (!ok) return;
 
+            let publicLink = null;
+            let subject = '';
+
             try {
+                alert(type === 'domestic'
+                    ? '발주서 웹 링크를 생성한 뒤 메일을 발송합니다. 잠시만 기다려 주세요.'
+                    : 'Creating PO webpage link and sending email. Please wait.');
+
+                publicLink = await po2_createPublicPoLink(type, d);
+                const mail = po2_makeWebLinkMail(type, d, publicLink.url);
+                subject = mail.subject;
+
+                const client = getClient();
                 const { data, error } = await client.functions.invoke('send-po-mail', {
                     body: {
                         to: d.supplier_email,
-                        subject,
-                        text: body,
-                        html: htmlBody
+                        subject: mail.subject,
+                        text: mail.text,
+                        html: mail.html
                     }
                 });
 
@@ -904,7 +995,8 @@
                     throw new Error((data && data.error) ? data.error : '메일 발송 실패');
                 }
 
-                d.status = '하이웍스발송완료';
+                d.status = '웹링크하이웍스발송완료';
+                d.public_url = publicLink.url;
                 d.updated_at = new Date().toISOString();
                 upsertHistory(d);
 
@@ -913,15 +1005,16 @@
                     type,
                     po_no: d.po_no,
                     to: d.supplier_email,
-                    subject,
-                    attachmentName: '',
+                    subject: mail.subject,
+                    attachmentName: '웹 발주서 링크',
+                    url: publicLink.url,
                     messageId: data.messageId || ''
                 });
                 po2_renderMailHistory();
 
                 alert(type === 'domestic'
-                    ? '하이웍스 메일 발송이 완료되었습니다.'
-                    : 'Hiworks email has been sent successfully.');
+                    ? `하이웍스 메일 발송 완료\n발주서 링크: ${publicLink.url}`
+                    : `Hiworks email sent.\nPO link: ${publicLink.url}`);
             } catch (err) {
                 console.error(err);
 
@@ -931,12 +1024,13 @@
                     po_no: d.po_no,
                     to: d.supplier_email,
                     subject,
-                    attachmentName: '',
+                    attachmentName: '웹 발주서 링크',
+                    url: publicLink ? publicLink.url : '',
                     error: err.message || String(err)
                 });
                 po2_renderMailHistory();
 
-                alert((type === 'domestic' ? '하이웍스 메일 발송 실패: ' : 'Hiworks email failed: ') + (err.message || err));
+                alert((type === 'domestic' ? '웹 발주서 링크 메일 발송 실패: ' : 'Web PO link email failed: ') + (err.message || err));
             }
         };
 
@@ -1143,7 +1237,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'HIWORKS-HTML-TABLE-v10';
+        mark.textContent = 'HIWORKS-WEB-LINK-v11';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
