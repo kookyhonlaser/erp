@@ -364,7 +364,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-HTML-PRINT-v8</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-HTML-PRINT-v9-ONEPAGE</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -462,7 +462,7 @@
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
                     <input type="hidden" id="dom_po_id" value="${attr(d.id)}">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">국내용 발주서</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">본문 발주서 하이웍스 발송</button></div></div>
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">국내용 발주서</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">1장 인쇄용 본문 발주서 발송</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-4 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">발주번호</label><input id="dom_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">발주일자</label><input id="dom_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">작성자</label><input id="dom_writer" class="input-box" value="${attr(d.writer)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">납기 요청일</label><input id="dom_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -487,7 +487,7 @@
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
                     <input type="hidden" id="exp_po_id" value="${attr(d.id)}">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">해외용 Purchase Order</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send PO by Hiworks</button></div></div>
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">해외용 Purchase Order</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send 1-Page PO</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-5 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">PO No.</label><input id="exp_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Date</label><input id="exp_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Currency</label><select id="exp_currency" class="input-box" onchange="po2_calc('overseas')">${['USD','EUR','JPY','CNY','KRW'].map(c => `<option ${c === (d.currency || 'USD') ? 'selected' : ''}>${c}</option>`).join('')}</select></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Incoterms</label><input id="exp_incoterms" class="input-box" value="${attr(d.incoterms)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Delivery Request</label><input id="exp_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -601,7 +601,7 @@
                 <div class="flex flex-wrap justify-between items-center gap-3 mb-5">
                     <div>
                         <h2 class="text-2xl font-black text-slate-800">메일 발송 이력</h2>
-                        <p class="text-sm text-slate-500 mt-1">본문 발주서 하이웍스 발송 기록입니다. 현재는 이 PC/브라우저에 저장됩니다.</p>
+                        <p class="text-sm text-slate-500 mt-1">1장 인쇄용 본문 발주서 발송 기록입니다. 현재는 이 PC/브라우저에 저장됩니다.</p>
                     </div>
                     <button type="button" onclick="po2_renderMailHistory()" class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-bold hover:bg-purple-200 text-sm">
                         <i class="fa-solid fa-rotate mr-1"></i>이력 새로고침
@@ -637,50 +637,59 @@
 
         function po2_emailRowsDomestic(items){
             const rows = [...(items || [])];
-            while (rows.length < 12) rows.push({no: rows.length + 1, name:'', spec:'', qty:'', price:'', amount:''});
+            while (rows.length < 7) rows.push({no: rows.length + 1, name:'', spec:'', qty:'', price:'', amount:''});
             return rows.map(i => `
                 <tr>
-                    <td style="border:1px solid #333;text-align:center;padding:5px;width:34px;">${i.name ? esc(i.no) : '&nbsp;'}</td>
-                    <td style="border:1px solid #333;padding:5px;">${esc(i.name || '')}</td>
-                    <td style="border:1px solid #333;padding:5px;">${esc(i.spec || '')}</td>
-                    <td style="border:1px solid #333;text-align:center;padding:5px;width:45px;">${i.name ? esc(i.qty) : ''}</td>
-                    <td style="border:1px solid #333;text-align:right;padding:5px;width:80px;">${i.name ? num(i.price) : ''}</td>
-                    <td style="border:1px solid #333;text-align:right;padding:5px;width:90px;">${i.name ? num(i.amount) : ''}</td>
+                    <td style="border:1px solid #333;text-align:center;padding:3px;width:30px;font-size:13px;">${i.name ? esc(i.no) : '&nbsp;'}</td>
+                    <td style="border:1px solid #333;padding:3px;font-size:22px;font-weight:800;line-height:1.12;">${esc(i.name || '')}</td>
+                    <td style="border:1px solid #333;padding:3px;font-size:22px;font-weight:800;line-height:1.12;">${esc(i.spec || '')}</td>
+                    <td style="border:1px solid #333;text-align:center;padding:3px;width:44px;font-size:22px;font-weight:800;line-height:1.12;">${i.name ? esc(i.qty) : ''}</td>
+                    <td style="border:1px solid #333;text-align:right;padding:3px;width:82px;font-size:22px;font-weight:800;line-height:1.12;">${i.name ? num(i.price) : ''}</td>
+                    <td style="border:1px solid #333;text-align:right;padding:3px;width:92px;font-size:22px;font-weight:800;line-height:1.12;">${i.name ? num(i.amount) : ''}</td>
                 </tr>`).join('');
         }
 
         function po2_emailRowsOverseas(items, currency){
             const rows = [...(items || [])];
-            while (rows.length < 9) rows.push({no: rows.length + 1, name:'', spec:'', qty:'', price:'', amount:''});
+            while (rows.length < 6) rows.push({no: rows.length + 1, name:'', spec:'', qty:'', price:'', amount:''});
             return rows.map(i => `
                 <tr>
-                    <td style="border:1px solid #333;text-align:center;padding:4px;width:34px;">${i.name ? esc(i.no) : '&nbsp;'}</td>
-                    <td style="border:1px solid #333;padding:4px;width:110px;">${esc(i.spec || '')}</td>
-                    <td style="border:1px solid #333;padding:4px;">${esc(i.name || '')}</td>
-                    <td style="border:1px solid #333;text-align:center;padding:4px;width:42px;">${i.name ? 'EA' : ''}</td>
-                    <td style="border:1px solid #333;text-align:right;padding:4px;width:78px;">${i.name ? num(i.price) : ''}</td>
-                    <td style="border:1px solid #333;text-align:center;padding:4px;width:42px;">${i.name ? esc(i.qty) : ''}</td>
-                    <td style="border:1px solid #333;text-align:right;padding:4px;width:88px;">${i.name ? num(i.amount) : ''}</td>
+                    <td style="border:1px solid #333;text-align:center;padding:3px;width:30px;font-size:12px;">${i.name ? esc(i.no) : '&nbsp;'}</td>
+                    <td style="border:1px solid #333;padding:3px;width:100px;font-size:20px;font-weight:800;line-height:1.12;">${esc(i.spec || '')}</td>
+                    <td style="border:1px solid #333;padding:3px;font-size:20px;font-weight:800;line-height:1.12;">${esc(i.name || '')}</td>
+                    <td style="border:1px solid #333;text-align:center;padding:3px;width:38px;font-size:18px;font-weight:800;line-height:1.12;">${i.name ? 'EA' : ''}</td>
+                    <td style="border:1px solid #333;text-align:right;padding:3px;width:76px;font-size:20px;font-weight:800;line-height:1.12;">${i.name ? num(i.price) : ''}</td>
+                    <td style="border:1px solid #333;text-align:center;padding:3px;width:38px;font-size:20px;font-weight:800;line-height:1.12;">${i.name ? esc(i.qty) : ''}</td>
+                    <td style="border:1px solid #333;text-align:right;padding:3px;width:86px;font-size:20px;font-weight:800;line-height:1.12;">${i.name ? num(i.amount) : ''}</td>
                 </tr>`).join('');
         }
 
         function po2_makeEmailDocumentHtml(type, d){
             const baseStyle = "font-family:'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif;color:#111;background:#fff;";
-            const wrapStyle = "max-width:760px;margin:0 auto;padding:18px;background:#fff;";
+            const wrapStyle = "max-width:760px;margin:0 auto;padding:8px 12px;background:#fff;";
+            const printCss = `<style>
+                @page { size: A4; margin: 8mm; }
+                @media print {
+                    body { margin:0 !important; }
+                    .po-mail-print-page { page-break-inside: avoid; break-inside: avoid; }
+                    .po-mail-print-guide { display:none !important; }
+                }
+            </style>`;
             const printGuide = type === 'domestic'
                 ? "※ 이 메일은 발주서 형태로 작성되었습니다. 메일 화면에서 Ctrl+P 또는 인쇄 버튼을 눌러 바로 출력할 수 있습니다."
                 : "※ This email is formatted as a purchase order. You can print this email directly from your mail client.";
 
             if (type === 'domestic') {
                 return `
-                <div style="${baseStyle}">
+                ${printCss}
+                <div class="po-mail-print-page" style="${baseStyle}">
                     <div style="${wrapStyle}">
-                        <div style="font-size:12px;color:#555;margin-bottom:10px;">${printGuide}</div>
+                        <div class="po-mail-print-guide" style="font-size:12px;color:#555;margin-bottom:4px;">${printGuide}</div>
 
-                        <table style="width:100%;border-collapse:collapse;margin-bottom:6px;">
+                        <table style="width:100%;border-collapse:collapse;margin-bottom:4px;">
                             <tr>
                                 <td style="width:58%;vertical-align:top;text-align:center;">
-                                    <div style="font-size:32px;font-weight:900;letter-spacing:18px;margin-top:8px;">발 주 서</div>
+                                    <div style="font-size:30px;font-weight:900;letter-spacing:16px;margin-top:4px;">발 주 서</div>
                                 </td>
                                 <td style="width:42%;vertical-align:top;">
                                     <table style="width:100%;border-collapse:collapse;font-size:12px;">
@@ -691,7 +700,7 @@
                                             <th style="border:1px solid #333;padding:6px;">승인</th>
                                         </tr>
                                         <tr>
-                                            <td style="border:1px solid #333;height:44px;"></td>
+                                            <td style="border:1px solid #333;height:34px;"></td>
                                             <td style="border:1px solid #333;"></td>
                                             <td style="border:1px solid #333;"></td>
                                         </tr>
@@ -700,7 +709,7 @@
                             </tr>
                         </table>
 
-                        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;">
+                        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px;">
                             <tr>
                                 <td style="width:48%;vertical-align:top;">
                                     <table style="width:100%;border-collapse:collapse;">
@@ -715,7 +724,7 @@
                                 <td style="width:4%;"></td>
                                 <td style="width:48%;vertical-align:top;">
                                     <table style="width:100%;border-collapse:collapse;">
-                                        <tr><td colspan="2" style="border:1px solid #333;text-align:center;height:52px;"><div style="font-size:34px;font-weight:900;font-style:italic;letter-spacing:-2px;">kooky</div></td></tr>
+                                        <tr><td colspan="2" style="border:1px solid #333;text-align:center;height:42px;"><div style="font-size:30px;font-weight:900;font-style:italic;letter-spacing:-2px;">kooky</div></td></tr>
                                         <tr><th style="border:1px solid #333;background:#eee;padding:5px;width:90px;">사업자번호</th><td style="border:1px solid #333;padding:5px;">${esc(d.buyer_biz)}</td></tr>
                                         <tr><th style="border:1px solid #333;background:#eee;padding:5px;">회사명/대표</th><td style="border:1px solid #333;padding:5px;">${esc(d.buyer_name)}</td></tr>
                                         <tr><th style="border:1px solid #333;background:#eee;padding:5px;">주 소</th><td style="border:1px solid #333;padding:5px;">${esc(d.buyer_addr)}</td></tr>
@@ -726,14 +735,14 @@
                             </tr>
                         </table>
 
-                        <table style="width:100%;border-collapse:collapse;font-size:14px;font-weight:900;margin-bottom:6px;">
+                        <table style="width:100%;border-collapse:collapse;font-size:14px;font-weight:900;margin-bottom:4px;">
                             <tr>
                                 <td style="border:2px solid #333;padding:7px;">금 액 : ${po2_moneyKo(d.total)} 원 정</td>
                                 <td style="border:2px solid #333;padding:7px;text-align:right;">( ₩: ${num(d.total)} ) / VAT포함</td>
                             </tr>
                         </table>
 
-                        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px;">
+                        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px;">
                             <thead>
                                 <tr>
                                     <th style="border:1px solid #333;background:#eee;padding:6px;width:34px;">번호</th>
@@ -758,18 +767,19 @@
             }
 
             return `
-            <div style="font-family:Arial,sans-serif;color:#111;background:#fff;">
+            ${printCss}
+            <div class="po-mail-print-page" style="font-family:Arial,sans-serif;color:#111;background:#fff;">
                 <div style="${wrapStyle}">
-                    <div style="font-size:12px;color:#555;margin-bottom:10px;">${printGuide}</div>
+                    <div class="po-mail-print-guide" style="font-size:12px;color:#555;margin-bottom:4px;">${printGuide}</div>
 
-                    <table style="width:100%;border-collapse:collapse;margin-bottom:26px;">
+                    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
                         <tr>
                             <td style="width:52%;vertical-align:top;">
-                                <div style="font-size:34px;font-weight:900;font-style:italic;letter-spacing:-2px;">kooky</div>
+                                <div style="font-size:30px;font-weight:900;font-style:italic;letter-spacing:-2px;">kooky</div>
                                 <div style="font-size:12px;line-height:1.25;"><b>Kooky Hon Laser. Ltd.</b><br>${esc(d.buyer_addr)}<br>Tel : ${esc(d.buyer_tel)}<br>Fax : +82 31 355 3129</div>
                             </td>
                             <td style="width:48%;vertical-align:top;">
-                                <div style="font-size:28px;font-weight:900;margin:8px 0 24px;">PURCHASE ORDER</div>
+                                <div style="font-size:28px;font-weight:900;margin:4px 0 14px;">PURCHASE ORDER</div>
                                 <table style="border-collapse:collapse;font-size:13px;">
                                     <tr><th style="text-align:left;padding:3px 22px 3px 0;">Date</th><td>${po2_dateEn(d.po_date)}</td></tr>
                                     <tr><th style="text-align:left;padding:3px 22px 3px 0;">Order No.</th><td>${esc(d.po_no)}</td></tr>
@@ -779,29 +789,29 @@
                         </tr>
                     </table>
 
-                    <table style="width:100%;border-collapse:collapse;margin-bottom:28px;">
+                    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
                         <tr>
                             <td style="width:52%;vertical-align:top;">
-                                <div style="font-size:18px;font-weight:900;margin-bottom:14px;">VENDER</div>
+                                <div style="font-size:17px;font-weight:900;margin-bottom:8px;">VENDER</div>
                                 <div style="font-size:13px;line-height:1.55;"><b><i>${esc(d.supplier_name)}</i></b><br><br>${esc(d.supplier_addr)}<br>${esc(d.supplier_tel)}<br>${esc(d.supplier_email)}</div>
                             </td>
                             <td style="width:48%;vertical-align:top;">
-                                <div style="font-size:18px;font-weight:900;margin-bottom:14px;">SHIP TO ADDRESS</div>
+                                <div style="font-size:17px;font-weight:900;margin-bottom:8px;">SHIP TO ADDRESS</div>
                                 <div style="font-size:13px;line-height:1.35;"><b>${esc(d.writer || 'Venic')}</b><br><b><i>${esc(d.buyer_name)}</i></b><br>${esc(d.buyer_addr)}<br>${esc(d.destination)}<br>${esc(d.buyer_tel)}<br>+82 31 355 3129</div>
                             </td>
                         </tr>
                     </table>
 
-                    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px;">
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px;">
                         <tr>
                             <th style="border:1px solid #333;background:#eee;padding:7px;">RMA No.</th>
                             <th style="border:1px solid #333;background:#eee;padding:7px;">SHIP VIA</th>
                             <th style="border:1px solid #333;background:#eee;padding:7px;">PAYMENT TERMS</th>
                         </tr>
                         <tr>
-                            <td style="border:1px solid #333;padding:14px;text-align:center;">&nbsp;</td>
-                            <td style="border:1px solid #333;padding:14px;text-align:center;">${esc(d.incoterms)}</td>
-                            <td style="border:1px solid #333;padding:14px;text-align:center;">${esc(d.payment_terms)}</td>
+                            <td style="border:1px solid #333;padding:8px;text-align:center;">&nbsp;</td>
+                            <td style="border:1px solid #333;padding:8px;text-align:center;">${esc(d.incoterms)}</td>
+                            <td style="border:1px solid #333;padding:8px;text-align:center;">${esc(d.payment_terms)}</td>
                         </tr>
                     </table>
 
@@ -820,7 +830,7 @@
                         <tbody>${po2_emailRowsOverseas(d.items, d.currency)}</tbody>
                     </table>
 
-                    <table style="width:190px;margin-left:auto;border-collapse:collapse;font-size:13px;margin-bottom:34px;">
+                    <table style="width:190px;margin-left:auto;border-collapse:collapse;font-size:13px;margin-bottom:18px;">
                         <tr><th style="border:2px solid #333;padding:5px;">TOTAL</th><td style="border:2px solid #333;padding:5px;text-align:right;">${num(d.total)} &nbsp; ${esc(d.currency)}</td></tr>
                     </table>
 
@@ -829,7 +839,7 @@
                             <td style="width:60%;vertical-align:top;line-height:1.35;">
                                 <div style="font-size:18px;font-weight:900;margin-bottom:8px;">DELIVERY DATE</div>
                                 <div>${po2_dateEn(d.delivery_date)}</div>
-                                <div style="font-size:18px;font-weight:900;margin:18px 0 8px;">BILL TO ADDRESS</div>
+                                <div style="font-size:17px;font-weight:900;margin:12px 0 6px;">BILL TO ADDRESS</div>
                                 <div><b><i>${esc(d.buyer_name)}</i></b><br>ATTAN : ${esc(d.writer || 'Venic')}<br>${esc(d.buyer_addr)}<br>Tel : ${esc(d.buyer_tel)}<br>Fax : +82 31 355 3129</div>
                                 <div style="font-size:15px;font-weight:900;margin-top:12px;">NOTES</div>
                                 <div>${esc(d.note).replaceAll('\n','<br>')}</div>
@@ -1133,7 +1143,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'HIWORKS-HTML-PRINT-v8';
+        mark.textContent = 'HIWORKS-HTML-PRINT-v9-ONEPAGE';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
