@@ -364,7 +364,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">QUOTE-PDF-v3-QUOTE-LAYOUT</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">QUOTE-PDF-v4-TABLE-ADJUST</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -1586,7 +1586,7 @@ KOOKYHON LASER`;
 
   function q2_printRows(items){
     const rows=[...(items||[])];
-    while(rows.length<8) rows.push({no:rows.length+1,name:"",desc:"",qty:"",price:"",amount:"",note:""});
+    while(rows.length<9) rows.push({no:rows.length+1,name:"",desc:"",qty:"",price:"",amount:"",note:""});
     return rows.map(i=>`
       <tr>
         <td class="qt-center">${i.name||i.desc ? q2_esc(i.no) : "&nbsp;"}</td>
@@ -1622,13 +1622,13 @@ KOOKYHON LASER`;
         .qt-company b{font-size:12px}
         .qt-stamp{position:absolute;right:10px;top:114px;width:50px;height:50px;object-fit:contain;opacity:.45}
         .qt-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
-        .qt-table th,.qt-table td{border:1.5px solid #111;padding:6px 5px;vertical-align:middle}
+        .qt-table th,.qt-table td{border:1.5px solid #111;padding:6px 4px;vertical-align:middle}
         .qt-table th{text-align:center;font-weight:900}
         .qt-center{text-align:center}
         .qt-num{text-align:right;white-space:nowrap}
         .qt-orange td{height:22px;background:#f3c58f;padding:0}
         .qt-items th{height:28px}
-        .qt-items td{height:44px}
+        .qt-items td{height:41px}
         .qt-item{font-size:15px;font-weight:900;line-height:1.15}
         .qt-total th,.qt-total td{height:26px;font-size:14px;font-weight:900}
         .qt-bottom{padding:0}
@@ -1664,12 +1664,12 @@ KOOKYHON LASER`;
           <table class="qt-table qt-items">
             <colgroup>
               <col style="width:58px">
-              <col style="width:138px">
-              <col style="width:160px">
+              <col style="width:146px">
+              <col style="width:170px">
               <col style="width:34px">
-              <col style="width:72px">
+              <col style="width:74px">
               <col style="width:82px">
-              <col style="width:50px">
+              <col style="width:30px">
             </colgroup>
             <thead>
               <tr>
@@ -1683,7 +1683,6 @@ KOOKYHON LASER`;
               </tr>
             </thead>
             <tbody>
-              <tr class="qt-orange"><td colspan="7"></td></tr>
               ${q2_printRows(d.items)}
             </tbody>
           </table>
@@ -1803,7 +1802,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'QUOTE-PDF-v3-QUOTE-LAYOUT';
+        mark.textContent = 'QUOTE-PDF-v4-TABLE-ADJUST';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
