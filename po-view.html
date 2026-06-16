@@ -20,7 +20,7 @@
     .title-en { font-size: 28px; font-weight: 900; margin: 6px 0 18px; }
     .muted { color: #94a3b8; font-size: 12px; }
     .loading, .error { max-width: 720px; margin: 80px auto; background: #fff; padding: 30px; border-radius: 16px; text-align: center; box-shadow: 0 10px 28px rgba(15,23,42,.12); }
-    .item-data { font-size: 18px; font-weight: 800; line-height: 1.12; }
+    .item-data { font-size: 16px; font-weight: 700; line-height: 1.12; }
     .seal-wrap { position:absolute; right:14px; top:54px; width:72px; height:72px; opacity:.72; pointer-events:none; z-index:2; }
     .seal-img { width:72px; height:72px; object-fit:contain; display:block; }
 
@@ -54,7 +54,7 @@
       while (rows.length < 11) rows.push({ no: rows.length + 1, name: "", spec: "", qty: "", price: "", amount: "" });
       return rows.map(i => `
         <tr>
-          <td class="center" style="font-size:14px;">${i.name ? esc(i.no) : "&nbsp;"}</td>
+          <td class="center" style="font-size:13px;">${i.name ? esc(i.no) : "&nbsp;"}</td>
           <td class="item-data">${esc(i.name || "")}</td>
           <td class="item-data">${esc(i.spec || "")}</td>
           <td class="center item-data">${i.name ? esc(i.qty) : ""}</td>
