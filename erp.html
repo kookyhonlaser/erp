@@ -364,7 +364,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">QUOTE-PDF-v2-APPLY-CHECK</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">QUOTE-PDF-v3-QUOTE-LAYOUT</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -1614,27 +1614,27 @@ KOOKYHON LASER`;
         .qt-page{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:9mm;box-sizing:border-box;font-family:'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif;color:#000}
         .qt-border{border:3px solid #111;min-height:279mm;box-sizing:border-box;position:relative;padding:0}
         .qt-title{height:42px;border-bottom:1.5px solid #111;text-align:center;font-size:30px;font-weight:900;letter-spacing:28px;line-height:42px}
-        .qt-top{height:170px;position:relative;padding:18px 18px 0}
-        .qt-recipient{position:absolute;left:112px;top:60px;width:260px;text-align:center;font-size:18px;line-height:1.45;font-weight:900;text-decoration:underline;text-underline-offset:3px}
-        .qt-intro{position:absolute;left:84px;bottom:22px;font-size:13px}
-        .qt-below{position:absolute;left:0;right:0;bottom:5px;text-align:center;font-size:16px;letter-spacing:28px;font-weight:700}
-        .qt-company{position:absolute;right:16px;top:22px;width:200px;text-align:right;font-size:11px;line-height:1.35}
+        .qt-top{height:172px;position:relative;padding:16px 16px 0}
+        .qt-recipient{position:absolute;left:108px;top:58px;width:270px;text-align:center;font-size:18px;line-height:1.45;font-weight:900;text-decoration:underline;text-underline-offset:3px}
+        .qt-intro{position:absolute;left:54px;bottom:22px;font-size:13px}
+        .qt-below{position:absolute;left:0;right:0;bottom:7px;text-align:center;font-size:16px;letter-spacing:30px;font-weight:700}
+        .qt-company{position:absolute;right:16px;top:20px;width:172px;text-align:right;font-size:11px;line-height:1.32}
         .qt-company b{font-size:12px}
-        .qt-stamp{position:absolute;right:15px;top:105px;width:56px;height:56px;object-fit:contain;opacity:.9}
+        .qt-stamp{position:absolute;right:10px;top:114px;width:50px;height:50px;object-fit:contain;opacity:.45}
         .qt-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
         .qt-table th,.qt-table td{border:1.5px solid #111;padding:6px 5px;vertical-align:middle}
         .qt-table th{text-align:center;font-weight:900}
         .qt-center{text-align:center}
         .qt-num{text-align:right;white-space:nowrap}
-        .qt-orange td{height:20px;background:#ffc993;padding:0}
-        .qt-items th{height:26px}
+        .qt-orange td{height:22px;background:#f3c58f;padding:0}
+        .qt-items th{height:28px}
         .qt-items td{height:44px}
         .qt-item{font-size:15px;font-weight:900;line-height:1.15}
         .qt-total th,.qt-total td{height:26px;font-size:14px;font-weight:900}
-        .qt-bottom{padding:0 0 0 0}
-        .qt-bottom-grid{display:grid;grid-template-columns:210px 1fr;border-top:1.5px solid #111;font-size:12px;min-height:126px}
-        .qt-bottom-left{border-right:1.5px solid #111;padding:8px 8px;line-height:1.55;font-weight:900}
-        .qt-bottom-right{padding:8px 8px;line-height:1.55}
+        .qt-bottom{padding:0}
+        .qt-bottom-grid{display:grid;grid-template-columns:160px 1fr;border-top:1.5px solid #111;font-size:12px;min-height:126px}
+        .qt-bottom-left{border-right:1.5px solid #111;padding:8px 8px;line-height:1.58;font-weight:900}
+        .qt-bottom-right{padding:8px 8px;line-height:1.58}
         .qt-bullet{display:grid;grid-template-columns:120px 1fr;gap:0}
         .qt-bullet div:nth-child(odd){font-weight:900}
       </style>
@@ -1663,13 +1663,13 @@ KOOKYHON LASER`;
 
           <table class="qt-table qt-items">
             <colgroup>
-              <col style="width:70px">
-              <col style="width:150px">
-              <col style="width:170px">
-              <col style="width:36px">
-              <col style="width:80px">
-              <col style="width:86px">
-              <col style="width:60px">
+              <col style="width:58px">
+              <col style="width:138px">
+              <col style="width:160px">
+              <col style="width:34px">
+              <col style="width:72px">
+              <col style="width:82px">
+              <col style="width:50px">
             </colgroup>
             <thead>
               <tr>
@@ -1803,7 +1803,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'QUOTE-PDF-v2-APPLY-CHECK';
+        mark.textContent = 'QUOTE-PDF-v3-QUOTE-LAYOUT';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
