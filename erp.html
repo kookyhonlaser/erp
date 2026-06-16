@@ -364,7 +364,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">HIWORKS-WEB-LINK-v11</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">QUOTE-PDF-v1</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -1189,6 +1189,572 @@ KOOKYHON LASER`;
     })();
     </script>
 
+
+<script id="quote-pdf-module-v1">
+(function(){
+  const QKEY = "kooky_quotes_pdf_v1";
+  const STAMP_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAABFCAIAAAB42Ad9AAAQAElEQVR4Aex6B1SU19b29N4YZmDovfdepAiIvSCgoGI36jWaWHIRxahYsMeS2FssMXYFQUEQFER6770IzMAwwwzT+3+Q+/lnRYyam7u+9d2VWY9nnbL3Pvt5z/uevc9BmOa/7geD/Nf9/qb0f2FJ/16lv1fpf+UJ/P3ifeFjFw/zR1iD7K63vD6WYHBIKhaLhcIvtPHF4n/lKqlUKgGf11vXmHPmStrhUylJR+59v+9u4t6ci9cKr9/JOvJT7snztzZvf7D3SFlaRndZFaen94v9/QyFv4aSmMcvv5f6y/r4lKSjRQ/S4SiUkYOtZaDvlM3rIvckzNu7fUr8+snx6/3j5k/6+itLfy+wXA15b9IOHH+QdKjmWbaQO/wZrn6uyL9Lic8cyDl14eGm75vzCw19PQJXLIje9V3wqjiXGZMdQgMZ5mZUAwMY+MHhBDqNbGRg6uLkEjYxYH7ktM3r5h3c5TZnWkdJxa318emHTvIH2Z/r9R/K/XlKgkFO6q6DKVt3D/b3hyVsWHjqQOjShSaODr+dTi6RDLZ3gs8JotH8tn+sjkAhTRztI3bFz92bCNFAHn6fnHHijIQ/Mjb6p0vYn9NsfpGXmpAk4vGDN66NPbhbz8bqQzsiNidt95FnCfsfb9mZf/6aWqX+nUxnU1Pls6zuugY4ATsj4duogzvxNK372/c25L4Gb+bvhD+/+cWUeGz2032H62/cMQ31X3DygK6VxfPj52pfvf5wypcXrnHqGoViIdgz2nNfd1RU/lZGKhKxu98iiDg+l9NeXtX8pphAIgXGLXCcNaXozqNnySclI39yb/wySv2tbY82b+N0dHnFr58QFwtcrHvwVNjWJWKyy1Mz1GoV6HkPuEalgqrkGoVcpZAJR4S9/e+HNGo1u7ePpq+HxeH5w8MqjQZDIjSVltYVFLpNnbT4ZDLJWK8i/SmfO/Re5fMrX0CJ3dmVuTPZwMkx5twJlVh+adFaIZtDd7OHatQqqbS/vrHi/pPfTmzo4UrBE1BqDQVHJBkaGHm6vx8tS3/eWlymVmt4A4NUhq6htUV7QwMECoNCIPn3HymUirDVy4gMndyjp8vTM99rfWblcykNdvWk79hnHRw4OX5ja15h/q/3wzatwVLIJi6OOkE+Mpl4+j83NL8u6nhd/H5ih2mTbBZEUR0cGMF+/hvXaBsZjA2NDA7xOroDY6Psfb3dwkJEHF5V9itrD3duc0fr01xpXVtfZR2QdA6Z6BIT2VpY1FZWAZqfj8+i1FVTe29Tgpa9rf/a5b3Nzcy29tj9iT2NjaeWruira5gQG6VWqNoKSuYkftdeUysRi8emh0KgbhEzYo7umbphtYmd7VgnKAsfpGJoVCQKDeoILJrZ0sIwMhgeGOysqNE2N0GbGhIYOmAIwMzFyT4suOzGr51VVaD5mfg0pWHmQMa+wxQqeUb8t1AIpCP3jb6FxdNjP44wWSbmFkOd3WAmY1fn8iu/ioQCuoN1ZWY2BAL6/gUYFAq2clZ3t+BdPAV7OcPO0m16+NhwbeYLAgHvMXOak7/fhGUxMDLGN3aunqX52CgowVrZTZ705uavEpEIND8Hn6ZU/PNNBkXLffkiBBIJLKqUyrJzV3UM9J2iZ4slMiyZ9PT0BX1XB8tZYcW37jsHB1r7efMG2G9rG3Ou3kw/cabsaVb1y4LmN2WFd1PSf7qQefEqVUcHhcWMmlKpBvr6HcNCwZMCTQNba9HAkFTw/zc6cC0C+l1mTMFpad9L3C+VSEDzk/gEpYbMbF5NveW8uXYBAWO2gtcu17Iw1qjVVBpdrFFX5+a7hQb3lFezBwftZoTLhKL2yqqS9Ay1UuUSHjphYbT71DDv6eFBsZFhXy0OXhzjPWsaCod9eux01g/nNErl5JVLdc1Mxyw3FhQS9BkkOg005XI5iM5pR09dWrdpmMkKWbEEKZfVZ7wAQ5/EH1ESDQ/nnL+MsDV3CA+BgPD+zhgMgfBZu7yzsLQ1O2/1Dwfn7viuIj0LBMeJi2IQKk1VfoGNj/ek5YuMnGyp+gyKjg5IhoAeFAqFw+FIBBKPJ+iamgQuW8Bt77y+advL2/fAawkE+IPs3qYW10mhoA5QXVzY191l7OVqHeBbk/2SosfwXBrTmp7Nbu8Co3+MP6JUk5ahRSCG/2MNj8W6uWnHi8s3+js6gTkdczPfNcuqnudy+pnZh05BFQrvqFkgPkJxaEsbm6rbj5/sOvDLt1ufJOy7vXFHX30LUBlD/qUbv67e0llZpW2gT7Exs3Cyd/HzKXr8hNXSJhEKXUIm4ohEsPdUPX/h6uvX1lDPsLYy9HQlmxi0VlZZ+nipqaS2ktIxU39QfpQSp7+/8VkW3dUZp60Fg8IDly/k9vXe3LItNelwV1WNhaf7snPHGrJy5QqVR2xEwakLRuZmdF3d7H3HoAopGgHXCMQBqxY5+3gBmbHpQcDt7+2WDfO7qkf3aG1rE9uwQC0TY3ZJ5eMdSUgEgmpk0FnfoGdpwWcP9dY32bi6djU3YRAoEYfbX9MAjl4TVsf11TbwmANjBj9Wwj42UJv2jIxEuUfO5rztvZeQBEch5u3c9vXV83bTw/LOXj07e0nB9TvG3u5Ba5bkHjuj4o+0F5awO3tUUIjvysXWk8NEQpEahyFYGsnF/9qpUHAklU6XYxHOk8BrDOGyBodZbIVIzOzrg8Pg1SlPpSIhh8msfpUXvCiGwxkik7UgKo1wmEcx1CMZM9qKSkwsrTUYdGXa84/5PNY/PiWlQtHyMl+jS6OZGmvR6UgYpO1Z9qU1G1+cvWLl5aFrYaZrbU43M9YxMso5flYOPFNryCZGZIaOTCCpepk/ODAAUapq0rKKHz4Z6u0fm0khlgjauwlaZCKNCnoQGmj1g3QkHhd3+ujsw0lekbPenP7Z1M6uq6a+t6nZzseru6XZ3sO9v61Dz8wMQSLCYTCNSmUZPIHd2Czm8YCFj2F8Sn11DRgVxGdhjEqjLrn9UMzlNhQUGpkY95VVNQCPhzkz98TbBfqXZWS6Rs0yCPLFMOj+S2JVCiUMg3IOCnQM8MPStXxjIkJXLFIpFGrVaO5XcOm6uLtPOSIsufWwNu15d16JiDNcev/xcHdf5/P8lKTDir6BhrTnYXELmovLJHwBp6evPjcfIpGSKVoysUSBhNcUFroGTZAJBR0VfxR5x6fUkpOvkqu0jY0q0zLqHqVIJGK6taXd7MkqiLLiwUOHCb4oHK69skoulpp7e1gF+In5I1KRSNvUCIlDNdxP6SmqkI8I+iprgXMkY30YHF72JL3zRR4EARPy+NV3Uiqv3lbyRqRyae39tPuJ+7pq6hiuDlhH897q2q7qar/oiNInz+qy88Bp1z82Eo5A4OAIBBIBw2KhUJi2qUlrzuuPLRHoH4+SWt3T0ACjk3FUioW7qwwKUSrlFgG+Q+3drLb2EQ7H6d3H0Fxe4RwaPDzIzrtyQ8YauLzsH90NTdYhQeV5b0ofpiKRSD6XaxkcEP39Vs7AQNvDDCUUar0gwsDFDoFDOy6KNAnxJxII1tPCvr57dd6J5NC1K6du3jAlcYtUIcPicCBexR3YNWnVUhDfUn88U/zsuZG9vZOHB/DYxs9Hyh4e7P3ovcU4lGRgUQaH7EdjEaTpxSsqlqBFpRk62De+zNcmU6yDApAYTGd1LZQnohsa9JZXK/r6lTAoFkeEaSDeMZGrfz4TuG4Fjkq19PfWMTIETmggGu1Aj6l7tgUuWuAWE0kyM3SPnOkQHIjF4sx83HFkEhw2+oNCoGBzx+IInRVVcCQCTyA0lVdm/HzT2M5uyc4dFG1tYAqAamvBHeGKhz/6OY1DidXaTtfRNnZzaS4rb0rJNAjwplhZdOUVYdBompermacXsNvw4hVeZzTMO02bFBj/LYWuE7JhlbGTfd6v925s3pZ35gq3qy/33JWHB48+2HsYjcWGr1hm5Dx6hkejsXK5DFgg6jPkSkVNepaIzwdNpUymkEpBhWFiIhaLREJhaWYW2EumrljiOikEjkSAoTGQ6HQsTbu3tn6s+WE5DqWRQbZaLpeLxDaeHgEJG8K+WUcx0Gt68hQkY1oGRhC1GlgZ7OqxcHMBFQBLPx80nQ7edlA3c3fxXzw/YFUcw9LExM87MuG7OfHfEklktVrN7Ojk9jOL7z2SCERqtYpE17aYOGGwtOpx/J5bGxKurd58acnX+VdvIclEVl+fkMslUigYBEo4xAVsgWWw1KAEgCPgMDSG9/HoNA4loDY4IiAxGKACtmxQ+sfFhuzZZhMeLOYP5164xO3tI2lTKe/OPyIe721FjVww0lNSMdjcLu5nkfAkEE/BNtBXXP7i7OWM05dL0p6VZGaVZ2XdjU/kNDXTrc1hMDgwaz8tTKNNkbDY3LYuiEiMVMq7s/JQGigSCutubFRIZd0NTbU5L1/+clsiEOaeuypgD7WVVwJFLX1dlWx0qUH9Q4xDCYGAk6haODL5vTSeRDKytQHNkBWLbYKDJGIxkUjEU8i9be33N31f+MNZBV9Qn/L09Z6jpWevpWzbU3zpBr+vn9fU1vOqWNLLlPJHMHi8ibU1GUdAY/BT160BptQaDZGiNXf3Vi1Xe4QWSY1BQtAo87AADImIxuN09PQN7awppvre8yJkcmV/W/twQ0tbXkFnUQnQpWprK9UqmVwO6h9iHEq8wSGVUo3EoIE08Ibb/bb0zsOq+6mZh0/d3bLb0t0diUZzevvAKLAqkohHUFCojhbBxsJs7lSitQlMo4YzaB6LY2zmzY44sXd2cmLQohinCX4ivsA0PDT6eDJei6JSKbPOXCpPeYqnUqOSEtbeurDw9JHoEwf8li8EZnFkYkNxcXNRMYFIAuupkcq5AwMqPLqrpAKqGA1xAj4fR9VCo1BA+EOMQwkJh8vlSiD66uL1x/G7bycm9dc2NBUWdZVVOcwIa8jOEQ1zIe8ScxMHu7W3Lq66cmb56R8W/ZDsFj3HwtdHh6bjOn2K35JY76jZCrm8p6aeOzAIh8N9I2Y5hgZxWKzehqayOymDZVWVt26/vPRz7tWbTw6drHySiSUTobBRfwRcHkSt4XN5ugaGWCxWLhR0573pKq/h9jFHOMPAMTgKrZKPcgP1DzFq4ne9ZHNj4IFsRGgT7B+wcc28I3uco2cFrVmOplKcp4QKucMwlRqGxwjf7VS9HR23t+95ceZy3tWbhfcelTxKl6MQjdl5GcfPPD58qjQ9o/Thk2EmC0wBvu/q/Nc1OS87Siv6W1plCvAxQKEqiImrk+UEb6qFMYimQAwAi8Wbu7q+b6rEUnZ1I1StQqDgGBiMy2KRiERWSxsIWUD4Q4xDCXwkujTqyMAASIIgcBi7qrH8p6siDlelVADnZErZ0OAAGo8XDI3eSOkaG4WuXGzl49mU+tzM0tJnfkRfS6dv1HS/6SHK5i7XwMCFB3dbuDqDiRUyGQyLNfFw03NzlENUwwNshUzJ7u5SYC2qHwAADepJREFUwFTd9Q0Vd1NBzgrEwDuplkjBKUNLhwaarK5uiVhkNnkiEo3VYjDgZAKVwZBLxOZ0en9rKxD4EONQ0qjUICxAYDCEGsqub+mtb3JdGGXl54PCY6QjAkMXR7haQzM3BTc7wByzrrkq40XZ82yZUlF4+UbtozSVSt5V1dhc28yHq58e/ynv+i0gBgCFwYlkIhwG1dLVxVO1dPR04VikuaebjYt7wPzIiWuXQhSqoe636cfPFv98pyzzubW3J9ACNxxkKhVL0yKQiCgUmmZoBDqHB1i9Hd0wxOi2CZq/wziUKDQ6d2hoiMnUt7Hsr60ZYfUTDPWAmoG9bUdRqZ6lZXtFpY6ZKYc1em4RiYVvGxqNbK0Wnj48YeMayyB/PYYemkT0jo5YeeGE/cQAZk5hU05eX31TR3E5VCTXpTOEb5nirj4CBieXynqq6zLOXcw9d6U+N6/saWbGqfPMoiodVzt7Xx/BABs8we7aBkM3RwWTDSLbsEiIoZDUGpVkmKuGQwkkCvDqQ8A+7MKRSUQdnYGmNrDzCBvaZTweUZcOxMy8PJhtXVQTI/ASItQQmEQGzkhy3ohTaBAahe2ubuiqaeiqrIWiYLWpz3IvXavLy3tb16SGwwuu3Hx6+GT54/Shrt4391PzT17Uc7LTCw0EO/twXZOwodU7Ylb42lXT16+JTtpGsDLxmDuT29+fffpCwa/38DRt+9BgJE3Lc2EUw9pCx8JMJBBCITA4EYsi4iDj/cahBG4JGC72Q82tcDKRK1cY+njjyWSgy7CxQkIh4gG2lZd34+s3eF3tsks3Wl7lCQcHYVIZUq0BVz9UY72+nm4FVGMXPtExKCh4xQLhMMc8wHfVtTOxR5Imrlxo6++loeADl8f5x0RSKBTwso3wBBokHAaBgimEI3zH8EBwkYKkEBefOhK2ZoV/5GwsnhC0dJH7nBl2U8PoFmZvy6sl/QNobQoGhwcqHwL2YRfoAQd9BZuNgcKsQwLUQrFcKmkvLW/Je8PwcOysqHScMRlvamjk6ozR1Q1cvNBpxhQzf09TTxeyFknO4UulMpVMVnLjbuYPp/N/ugzVqGBwOBQClXD5zMaWypQ0krYWmCL16I88lcogJBCNJ6QkHnh89GTBL3dyf75JNzHuKqskaVEbCt405RUASQBwGwNKhpExKAc7OzFQhJnLv9Ix0PM7jE9J19hEJJF019Z5Lozsbmu9/c8dRbfuNuXme06f7hEZQaRoKXrZPZU1zlEz0/YfSdlzMP3cpdwbt2vzCyVqJZZEBJR4/Syivg4Ei1aqVDAkrKOk/Mm3iRmJ+5U9/WDNR4Z5KgR84cGk6d+tX3jmsHtsRF9pNSu/1NLNRSaR4mladAajLb+wJiv36enzKoXivdMNeXmssmo1GmVoZ/e+83eV8SmRGDp67m61Kc/JVO3YQ3tnJ8ZH798VnbwTPEI4EpmafKz9TYmupYWZhyvOwdoyJHB+0o7ZCZtC166Ys3MrUV+fRqeFrl/lHztv1o54BRzB6ekH+YuYjLOLmkF0dehtbcfisHM3fQ1HIbqrqhpfvfaaO9Np2iSUhZGho315SrpDYEDBrXt2U8Lm790h5QzXv8x773T7q0Ihk0kyZOjZWr/v/F1lfEpAyG3mVIxK3fTqNYaApzB00TgcHIEA/bmnLw7U1kcf3k17l7bO3xav0WjAUYrX1ctqbnt99dZIL1MqkopBBgBSDI1GAXLwllZDB7sVp4/6LppvEzxB1NVzdfWGlKQDdzfvyDr4Y96Ji5eXrWcPMsO/XlX2OM07YmZLRaWutYWVmyuwLFfKcVqUqpwcVkenRCDoa2xBIpFG3h7Ak4/ho5T0HWzlBGzTi5fvNdUQSH1mtqimyS0ygmYyGh8UMmnhr/dsJvh1l1Y++ibhzsaE6pQ0cAQWK+VoAgEogmsZNUguBVKFWAqaAEgCHoHDKpjcwaLqkd5+/siIVCJWIqChK5e2FJbK5QpjB3tDWxvH0IlAuOp5NsPCgqRNq/nlvkwg7KusQclkUDLRZmIgGP0YPkoJKASvXirq7GkvKAJ1ZmcXf5gzWNfM4/FbCgpl7/77wuuzVzvzinEEYvjmdTRfFzQCpVaqrScGLL96BqQ5QAuJw9KNDPAkIhwBB00ACzcX/zXLLaaFOC6O1LOzhsEhLnFzYw7u1NKmoShEXndPd3mVjqFh9tXr+Y9TmrNfwVDI4hu3ta2tdC3Myh6koNEYr/lRWMLo84J85PdHlPTtba3mTCt9mKJUKfur614dOmUS4g831DW0MH68Y+/DbXuH2ZzYE8kUOg0OR0zevN7nqzh9N2elTMl52yfjjYAZsTjcjF1bp+1JIGhTQXMMzuEhTlMniZQKgqVpzLHk4LgFIOaeW/ONlM0N+WpZ/u17Z5Z8Bc78gRFzGI52rc9yoSp1+Kavix6lStkcHUcHu/+5ZB6z9mH5R5SAtGf0HI1aVXDlhuuMKRI+rye/EIvCku0s0AwKs6YW7AfgSwNiEj7/4b4jODpt3oGdHjFzGnPzwXeStu/Ys1PnB9u6wEVSa1FZe2llY0HR8ws/A8nStGd0Q0ObAL+KvLzyF7lgWUK/Wpp96VrJ4yczt2ygmBiqlUqZWDxx6aKYUwemfP/dQFt7c3oWBo13jpz5LoCBOT+KT1CCQWHu8yIE9U0gLs3Yv7OnrolV09heUuW2YK736rjMc5dYza1KhTxz/2GkRAZDwm9s3p5z/hoMjfT5apFteLAGjWgtrShLz2guLO6uquGyWHp2ViDvtvbxhCuVPRXVNAYDIpV3VdZYe3qsu3IWHCWq7qdM/3adlqHeL1sS39Y3EigUwRCn7PodmEypF+yja2v1USr/M/AJSkDMxt+f5OqQf/qSSiSbsSseSsX3ZBWWnLyBJxO16PRbm7b/8o8tI2JpWOImZnk1HoXxnR8plcjALVz182y1QEChUUlUCoahHbhsIVSurE1/3pz3hj/EFoOvEQFXyOR81uDrew/baqpxJOLUTetR+ox73+2ioPC2YcECHg84UHbrAXRYZBbgG7A4FjQ/iU9TAia8Y+cZ+3ml7dijUahijuyhWZthiAQhd6S9shqORpqFBC46foiAJbS8yucM9Jq5O87ctA5FJdH0GNY+3gQaDYnF0hh6rJY2QT9r4UGQFi3mdzMbC4pJNFpg1FxwWadtoC8YHvUeDkf4R86Z+PWqxspy5/CJ9hP88i9eGyirkuOQvssWwOH/2mOAS3+Az6KEwWDBEZBgYZy9+7BgiBt3/geZWslsbJ6dsHFu0vaABdFwJILPGhBKpEgU/NbWRJC/GNhaVWW9rMjMcZwUbO7i1F9ViyMTwZ/V5CpFwdVfwBNZeizZZVKIQi4Hf8kWcrjOARPee2nl5R6V9D0chQSnlbcvC3hwpcfKBb/dYN5Ljlv5LEpAE41ETfl2PcpAN+/Qj69/vRO993upSNxeVWPs7Ah7d7ruqqphmJs6zpopGuRpFEq3sFCvxdGi5s43567VZucMdHZoGRqicZjWNyX6TnYyHr/oXkrG+cvPTpyR8fl6NhbPjv3IbGkDE42hv74pdfvetucvR5CQqN2JFo5OY/2fU34uJWALRybN2pWg5+XUlfos8/T5+cm7gxbMB/1j6KitQ2IwnIZ257CJLSWlx+NWvq2sFRPQMCJhqPutlbMTmMnU3bXoforX7Jnmvl58kL8rVDoWZnRzE4VEymxo7amqAaY0EEhZ2rMnO/YJu3qx1qaxR5L1LSxB/+cDTPT5whAkGhX0j1Xavp7tWS9vf5fQ/CpfpZADfY1aPdTfT7Uy721s1NZnSGUyJBweHDNv2bH92uZG8mEezW40JTP1dFXLZC/OXWCyetFEPJ6mLRNLWR3tvIFBh7lT3SNngTuJ2zuTKq/dxqBRRlNDZiZ+R3n3p1swxefjyygBuxgcftq366N+OCDjC8rOX767NZHd3gGFwRYe2mMd6M9TSRE0ChqFYtC1H8TvuPH15trUpw7zZoFtE+jS9fSnbl4vlio4nW9lcplUJOQPDlD1DSatWuY+KezFmcspiXv5lfVqDNprRdzkNSsxGCzQ+lJ8MaWxCXTNTaMO7KEG+Q4z+7P3Hbm4al1PYTnDwOibKxesfXy4rAE5DIoh4lFwGJlKlkukYMMYU9Q21IdhUAgMSsfUxGnSxNlbvjF0sk//4fT5RV/15ICMW0Of4B19OMlpcuiY/J8o/yQlMBORpj1t7dr5x4/RJ3hCIKqCM5dOLVj27OgpVktrYEx09L5ds5J3RSTvsouYae01+pcBoAKAw+Fnrlsz/R9riCRCQ9bLC+s3p8bvFtS3YPBYqq9L1NH9UQnfaevpAck/Ddif1hxTpDEYk1atXPrjCZKbA4qAb39d/DRx77nYJbe/2Zpz4kLR7QfteW9qUp7e3518Y+uO+9t339m649aWxOtrNhYcP9eanSPo6UEZMry/Whxz8lDk1n/qmIyeW8cs/+ny36U0NjEKi43ZuX35+ZNLz51wXRxLMzcXCUZ621o7CoraX+a3FxQMNzbK3/ZwOzvY7IEhziBOT8dyWrjnqri4M8eXHEl2mTGFQqOB5GvM2r9Z/jWUgBMIOByHw1EN9b3mzopK3r36+sWNd28sOX9q+q5ts3YnTk7YErhhXczxI+uvXNzw88WYfTsnLFngNilc19Bo7GQJLPxV+Mso/dYhKAQCkhcEGkVh6Bo5Oujb2Zq4uVr7+ZIZukAMCv79J/EfofSfdPjTtv+m9Oln9L8v8V+4Sv8PAAD//zT/33YAAAAGSURBVAMAL6txi9dQdJgAAAAASUVORK5CYII=";
+
+  function q2_el(id){ return document.getElementById(id); }
+  function q2_val(id){ const e=q2_el(id); return e ? (e.value || "").trim() : ""; }
+  function q2_set(id,v){ const e=q2_el(id); if(e) e.value = v ?? ""; }
+  function q2_num(v){ return Number(v || 0).toLocaleString("ko-KR"); }
+  function q2_n(v){ return Number(String(v || "0").replaceAll(",","")) || 0; }
+  function q2_esc(v){ return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
+  function q2_today(){ return new Date().toISOString().slice(0,10); }
+  function q2_makeId(){ return "qt_" + Date.now() + "_" + Math.random().toString(16).slice(2); }
+  function q2_dateKo(v){
+    const m=String(v||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? `${m[1]}년 ${m[2]}월 ${m[3]}일` : q2_esc(v);
+  }
+  function q2_dateCompact(v){
+    const m=String(v||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? `${m[1]}${m[2]}${m[3]}` : new Date().toISOString().slice(0,10).replaceAll("-","");
+  }
+  function q2_moneyKo(n){
+    n = Math.floor(Number(n || 0));
+    if(!n) return "영";
+    const nums=["","일","이","삼","사","오","육","칠","팔","구"];
+    const pos=["","십","백","천"];
+    const units=["","만","억","조"];
+    function part(x){
+      let out="";
+      const s=String(x).padStart(4,"0");
+      for(let i=0;i<4;i++){
+        const d=Number(s[i]);
+        if(!d) continue;
+        const p=3-i;
+        out += (d===1 && p>0 ? "" : nums[d]) + pos[p];
+      }
+      return out;
+    }
+    const groups=[];
+    while(n>0){ groups.push(n%10000); n=Math.floor(n/10000); }
+    let out="";
+    for(let i=groups.length-1;i>=0;i--) if(groups[i]) out += part(groups[i]) + units[i];
+    return out;
+  }
+  function q2_load(){
+    try{
+      const arr = JSON.parse(localStorage.getItem(QKEY) || "[]");
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return []; }
+  }
+  function q2_saveAll(arr){ localStorage.setItem(QKEY, JSON.stringify(arr)); }
+  function q2_upsert(d){
+    const arr=q2_load();
+    const idx=arr.findIndex(x=>x.id===d.id);
+    if(idx>=0) arr[idx]=d; else arr.unshift(d);
+    q2_saveAll(arr);
+  }
+  function q2_nextNo(){
+    const day=q2_dateCompact(q2_today());
+    const arr=q2_load();
+    let max=0;
+    arr.forEach(x=>{
+      const m=String(x.quote_no||"").match(new RegExp("^QT-" + day + "-(\\d+)$"));
+      if(m) max=Math.max(max, Number(m[1]||0));
+    });
+    return "QT-" + day + "-" + String(max+1).padStart(3,"0");
+  }
+  function q2_defaultItems(){
+    return [
+      {no:1, name:"", desc:"", qty:1, price:0, amount:0, note:""},
+      {no:2, name:"", desc:"", qty:1, price:0, amount:0, note:""}
+    ];
+  }
+  function q2_activeQuotesNav(){
+    document.querySelectorAll(".nav-btn").forEach(b=>{
+      b.classList.remove("bg-slate-800","text-white","font-bold");
+      b.classList.add("text-slate-300");
+    });
+    const btn = Array.from(document.querySelectorAll("button")).find(b => (b.getAttribute("onclick")||"").includes("quotes"));
+    if(btn){
+      btn.classList.add("bg-slate-800","text-white","font-bold");
+      btn.classList.remove("text-slate-300");
+    }
+  }
+  function q2_content(html){
+    const s=q2_el("searchContainer");
+    const c=q2_el("contentArea");
+    if(s) s.innerHTML="";
+    if(c) c.innerHTML=html;
+  }
+
+  window.quote2_open = function(){
+    q2_activeQuotesNav();
+    quote2_renderList();
+  };
+
+  window.quote2_renderList = function(){
+    q2_activeQuotesNav();
+    const today=q2_today();
+    const from=q2_el("q2_filter_from")?.value || "2025-06-16";
+    const to=q2_el("q2_filter_to")?.value || today;
+    const customer=(q2_el("q2_filter_customer")?.value || "").trim().toLowerCase();
+    const manager=(q2_el("q2_filter_manager")?.value || "").trim().toLowerCase();
+    const memo=(q2_el("q2_filter_memo")?.value || "").trim().toLowerCase();
+
+    let rows=q2_load();
+    rows=rows.filter(x=>{
+      const d=x.quote_date || "";
+      if(from && d < from) return false;
+      if(to && d > to) return false;
+      if(customer && !String(x.customer||"").toLowerCase().includes(customer)) return false;
+      if(manager && !String(x.recipient||"").toLowerCase().includes(manager)) return false;
+      if(memo && !String(x.memo||"").toLowerCase().includes(memo)) return false;
+      return true;
+    });
+
+    q2_content(`
+      <div class="bg-white rounded-xl shadow p-5 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+          <div>
+            <label class="block text-sm font-bold text-slate-600 mb-2">기간 조회</label>
+            <div class="flex gap-2 items-center">
+              <input id="q2_filter_from" type="date" class="input-box" value="${q2_esc(from)}">
+              <span>~</span>
+              <input id="q2_filter_to" type="date" class="input-box" value="${q2_esc(to)}">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-600 mb-2">거래처</label>
+            <input id="q2_filter_customer" class="input-box" value="${q2_esc(customer)}">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-600 mb-2">담당자</label>
+            <input id="q2_filter_manager" class="input-box" value="${q2_esc(manager)}">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-600 mb-2">비고</label>
+            <input id="q2_filter_memo" class="input-box" value="${q2_esc(memo)}">
+          </div>
+          <div class="flex justify-end">
+            <button type="button" onclick="quote2_renderList()" class="px-7 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">
+              <i class="fa-solid fa-magnifying-glass mr-2"></i>조회
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-between items-center mb-5">
+        <h1 class="text-3xl font-black text-slate-800 border-l-8 border-cyan-500 pl-4">견적 관리</h1>
+        <button type="button" onclick="quote2_renderForm()" class="px-6 py-3 bg-cyan-600 text-white rounded-lg font-bold shadow hover:bg-cyan-700">
+          <i class="fa-solid fa-plus mr-2"></i>신규 등록
+        </button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-200 text-slate-700">
+            <tr>
+              <th class="p-4 text-center">일자</th>
+              <th class="p-4 text-left">견적번호</th>
+              <th class="p-4 text-left">거래처</th>
+              <th class="p-4 text-left">담당자</th>
+              <th class="p-4 text-right">견적가</th>
+              <th class="p-4 text-left">비고</th>
+              <th class="p-4 text-center">관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map(x=>`
+              <tr class="border-t hover:bg-slate-50">
+                <td class="p-3 text-center">${q2_esc(x.quote_date)}</td>
+                <td class="p-3 font-bold">${q2_esc(x.quote_no)}</td>
+                <td class="p-3">${q2_esc(x.customer)}</td>
+                <td class="p-3">${q2_esc(x.recipient)}</td>
+                <td class="p-3 text-right font-bold">₩ ${q2_num(x.total)}</td>
+                <td class="p-3">${q2_esc(x.memo)}</td>
+                <td class="p-3 text-center whitespace-nowrap">
+                  <button type="button" onclick="quote2_renderForm('${q2_esc(x.id)}')" class="px-3 py-1 bg-slate-100 rounded font-bold hover:bg-slate-200">열기</button>
+                  <button type="button" onclick="quote2_delete('${q2_esc(x.id)}')" class="px-3 py-1 bg-red-50 text-red-600 rounded font-bold hover:bg-red-100">삭제</button>
+                </td>
+              </tr>`).join("") : `<tr><td colspan="7" class="p-8 text-center text-slate-500">데이터가 없습니다.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    `);
+  };
+
+  window.quote2_renderForm = function(id){
+    q2_activeQuotesNav();
+    const old = id ? q2_load().find(x=>x.id===id) : null;
+    const d = old || {
+      id:q2_makeId(),
+      quote_no:q2_nextNo(),
+      quote_date:q2_today(),
+      customer:"",
+      recipient:"",
+      sender:"Venic",
+      sender_tel:"031 - 355 - 3164",
+      sender_fax:"031 - 355 - 3129",
+      homepage:"http://www.kooky.co.kr",
+      company_name:"쿠키혼레이저 주식회사",
+      company_addr:"경기 화성시 송산면 화성로 316-42",
+      delivery:"발주 후 3~4주",
+      payment:"고객사 지정",
+      valid:"견적일로부터 1주",
+      etc:"- V.A.T 별도",
+      memo:"",
+      items:q2_defaultItems()
+    };
+    q2_content(`
+      <div class="max-w-7xl mx-auto">
+        <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+          <button type="button" onclick="quote2_renderList()" class="px-5 py-3 bg-slate-200 rounded-lg font-bold hover:bg-slate-300">
+            ← 견적 목록으로 돌아가기
+          </button>
+          <div class="flex gap-2 flex-wrap">
+            <button type="button" onclick="quote2_save()" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700">저장</button>
+            <button type="button" onclick="quote2_saveAs()" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold hover:bg-amber-600">다른 이름으로 저장</button>
+            <button type="button" onclick="quote2_print()" class="px-5 py-3 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800">인쇄 / PDF 저장</button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-6">
+          <h1 class="text-3xl font-black mb-6">견적서 작성</h1>
+          <input type="hidden" id="q2_id" value="${q2_esc(d.id)}">
+
+          <div class="grid md:grid-cols-4 gap-4 mb-6">
+            <div><label class="block text-sm font-bold mb-2">견적번호</label><input id="q2_no" class="input-box" value="${q2_esc(d.quote_no)}"></div>
+            <div><label class="block text-sm font-bold mb-2">견적일</label><input id="q2_date" type="date" class="input-box" value="${q2_esc(d.quote_date)}"></div>
+            <div><label class="block text-sm font-bold mb-2">거래처</label><input id="q2_customer" class="input-box" value="${q2_esc(d.customer)}" placeholder="예: (주)코스테아이앤씨"></div>
+            <div><label class="block text-sm font-bold mb-2">수신 담당자</label><input id="q2_recipient" class="input-box" value="${q2_esc(d.recipient)}" placeholder="예: 채영준 책임님"></div>
+          </div>
+
+          <div class="grid md:grid-cols-4 gap-4 mb-6">
+            <div><label class="block text-sm font-bold mb-2">발신</label><input id="q2_sender" class="input-box" value="${q2_esc(d.sender)}"></div>
+            <div><label class="block text-sm font-bold mb-2">전화</label><input id="q2_sender_tel" class="input-box" value="${q2_esc(d.sender_tel)}"></div>
+            <div><label class="block text-sm font-bold mb-2">팩스</label><input id="q2_sender_fax" class="input-box" value="${q2_esc(d.sender_fax)}"></div>
+            <div><label class="block text-sm font-bold mb-2">홈페이지</label><input id="q2_homepage" class="input-box" value="${q2_esc(d.homepage)}"></div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4 mb-6">
+            <div><label class="block text-sm font-bold mb-2">회사명</label><input id="q2_company_name" class="input-box" value="${q2_esc(d.company_name)}"></div>
+            <div><label class="block text-sm font-bold mb-2">회사주소</label><input id="q2_company_addr" class="input-box" value="${q2_esc(d.company_addr)}"></div>
+          </div>
+
+          <div class="overflow-x-auto border rounded-xl mb-4">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-100">
+                <tr>
+                  <th class="p-2 w-12">No</th>
+                  <th class="p-2 min-w-[180px]">품명</th>
+                  <th class="p-2 min-w-[260px]">내용</th>
+                  <th class="p-2 w-20">수량</th>
+                  <th class="p-2 w-32">단가</th>
+                  <th class="p-2 w-36">총금액(1set)</th>
+                  <th class="p-2 w-24">비고</th>
+                  <th class="p-2 w-16">삭제</th>
+                </tr>
+              </thead>
+              <tbody id="q2_items"></tbody>
+            </table>
+          </div>
+          <button type="button" onclick="quote2_addRow()" class="px-4 py-2 bg-slate-100 rounded-lg font-bold hover:bg-slate-200 mb-6">+ 품목 추가</button>
+
+          <div class="grid md:grid-cols-4 gap-4 mb-4">
+            <div><label class="block text-sm font-bold mb-2">납기</label><input id="q2_delivery" class="input-box" value="${q2_esc(d.delivery)}"></div>
+            <div><label class="block text-sm font-bold mb-2">결제조건</label><input id="q2_payment" class="input-box" value="${q2_esc(d.payment)}"></div>
+            <div><label class="block text-sm font-bold mb-2">견적유효기간</label><input id="q2_valid" class="input-box" value="${q2_esc(d.valid)}"></div>
+            <div><label class="block text-sm font-bold mb-2">기타</label><input id="q2_etc" class="input-box" value="${q2_esc(d.etc)}"></div>
+          </div>
+          <div><label class="block text-sm font-bold mb-2">비고</label><textarea id="q2_memo" class="input-box" rows="2">${q2_esc(d.memo)}</textarea></div>
+        </div>
+      </div>
+    `);
+    const items = (d.items && d.items.length) ? d.items : q2_defaultItems();
+    const tb=q2_el("q2_items");
+    tb.innerHTML = "";
+    items.forEach(it => quote2_addRow(it));
+    quote2_calc();
+  };
+
+  window.quote2_addRow = function(item){
+    const tb=q2_el("q2_items");
+    if(!tb) return;
+    const idx=tb.children.length+1;
+    const it=item || {no:idx,name:"",desc:"",qty:1,price:0,amount:0,note:""};
+    const tr=document.createElement("tr");
+    tr.className="border-t";
+    tr.dataset.q2Row="1";
+    tr.innerHTML=`
+      <td class="p-2 text-center q2-no">${idx}</td>
+      <td class="p-2"><input class="input-box q2-name" value="${q2_esc(it.name)}"></td>
+      <td class="p-2"><input class="input-box q2-desc" value="${q2_esc(it.desc)}"></td>
+      <td class="p-2"><input type="number" class="input-box q2-qty text-right" value="${q2_esc(it.qty)}" oninput="quote2_calc()"></td>
+      <td class="p-2"><input type="number" class="input-box q2-price text-right" value="${q2_esc(it.price)}" oninput="quote2_calc()"></td>
+      <td class="p-2"><input class="input-box q2-amount text-right bg-slate-50" value="${q2_num(it.amount)}" readonly></td>
+      <td class="p-2"><input class="input-box q2-note" value="${q2_esc(it.note)}"></td>
+      <td class="p-2 text-center"><button type="button" onclick="this.closest('tr').remove(); quote2_renumber(); quote2_calc();" class="text-red-500 font-bold">삭제</button></td>
+    `;
+    tb.appendChild(tr);
+    q2_calc();
+  };
+
+  window.quote2_renumber = function(){
+    document.querySelectorAll("#q2_items tr").forEach((tr,i)=>{
+      const no=tr.querySelector(".q2-no");
+      if(no) no.textContent=i+1;
+    });
+  };
+
+  window.quote2_calc = q2_calc;
+  function q2_calc(){
+    let total=0;
+    document.querySelectorAll("#q2_items tr").forEach((tr,i)=>{
+      const qty=q2_n(tr.querySelector(".q2-qty")?.value);
+      const price=q2_n(tr.querySelector(".q2-price")?.value);
+      const amount=qty*price;
+      const a=tr.querySelector(".q2-amount");
+      if(a) a.value=q2_num(amount);
+      const no=tr.querySelector(".q2-no");
+      if(no) no.textContent=i+1;
+      total += amount;
+    });
+    return total;
+  }
+
+  function q2_items(){
+    const arr=[];
+    document.querySelectorAll("#q2_items tr").forEach((tr,i)=>{
+      const name=tr.querySelector(".q2-name")?.value.trim() || "";
+      const desc=tr.querySelector(".q2-desc")?.value.trim() || "";
+      const qty=q2_n(tr.querySelector(".q2-qty")?.value);
+      const price=q2_n(tr.querySelector(".q2-price")?.value);
+      const note=tr.querySelector(".q2-note")?.value.trim() || "";
+      const amount=qty*price;
+      if(name || desc || qty || price || note){
+        arr.push({no:i+1,name,desc,qty,price,amount,note});
+      }
+    });
+    return arr;
+  }
+
+  function q2_collect(){
+    const items=q2_items();
+    const total=items.reduce((s,x)=>s+(Number(x.amount)||0),0);
+    return {
+      id:q2_val("q2_id") || q2_makeId(),
+      quote_no:q2_val("q2_no") || q2_nextNo(),
+      quote_date:q2_val("q2_date") || q2_today(),
+      customer:q2_val("q2_customer"),
+      recipient:q2_val("q2_recipient"),
+      sender:q2_val("q2_sender"),
+      sender_tel:q2_val("q2_sender_tel"),
+      sender_fax:q2_val("q2_sender_fax"),
+      homepage:q2_val("q2_homepage"),
+      company_name:q2_val("q2_company_name"),
+      company_addr:q2_val("q2_company_addr"),
+      delivery:q2_val("q2_delivery"),
+      payment:q2_val("q2_payment"),
+      valid:q2_val("q2_valid"),
+      etc:q2_val("q2_etc"),
+      memo:q2_val("q2_memo"),
+      items,total,
+      updated_at:new Date().toISOString()
+    };
+  }
+
+  window.quote2_save = function(silent){
+    const d=q2_collect();
+    q2_upsert(d);
+    if(!silent) alert("견적서를 저장했습니다.");
+    q2_set("q2_id", d.id);
+    return d;
+  };
+
+  window.quote2_saveAs = function(){
+    const d=q2_collect();
+    const suggested = (d.quote_no || q2_nextNo()) + "-COPY";
+    const newNo = prompt("새 견적번호를 입력하세요.", suggested);
+    if(newNo === null) return;
+    d.id=q2_makeId();
+    d.quote_no=(newNo.trim() || suggested);
+    d.updated_at=new Date().toISOString();
+    q2_upsert(d);
+    alert("다른 이름으로 저장했습니다.");
+    quote2_renderForm(d.id);
+  };
+
+  window.quote2_delete = function(id){
+    if(!confirm("이 견적서를 삭제할까요?")) return;
+    q2_saveAll(q2_load().filter(x=>x.id!==id));
+    quote2_renderList();
+  };
+
+  function q2_printRows(items){
+    const rows=[...(items||[])];
+    while(rows.length<8) rows.push({no:rows.length+1,name:"",desc:"",qty:"",price:"",amount:"",note:""});
+    return rows.map(i=>`
+      <tr>
+        <td class="qt-center">${i.name||i.desc ? q2_esc(i.no) : "&nbsp;"}</td>
+        <td class="qt-item">${q2_esc(i.name||"")}</td>
+        <td class="qt-item">${q2_esc(i.desc||"")}</td>
+        <td class="qt-center qt-item">${i.name||i.desc ? q2_esc(i.qty) : ""}</td>
+        <td class="qt-num qt-item">${i.name||i.desc ? "₩" + q2_num(i.price) : ""}</td>
+        <td class="qt-num qt-item">${i.name||i.desc ? "₩" + q2_num(i.amount) : ""}</td>
+        <td>${q2_esc(i.note||"")}</td>
+      </tr>
+    `).join("");
+  }
+
+  function q2_printHtml(d){
+    const stamp = STAMP_URI ? `<img src="${STAMP_URI}" class="qt-stamp" alt="stamp">` : "";
+    return `
+      <style>
+        @page{size:A4;margin:0}
+        @media print{
+          body>*:not(#printContainer){display:none!important}
+          #printContainer{display:block!important}
+          .no-print{display:none!important}
+        }
+        #printContainer{background:white!important;color:#111!important}
+        .qt-page{width:210mm;min-height:297mm;margin:0 auto;background:#fff;padding:9mm;box-sizing:border-box;font-family:'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif;color:#000}
+        .qt-border{border:3px solid #111;min-height:279mm;box-sizing:border-box;position:relative;padding:0}
+        .qt-title{height:42px;border-bottom:1.5px solid #111;text-align:center;font-size:30px;font-weight:900;letter-spacing:28px;line-height:42px}
+        .qt-top{height:170px;position:relative;padding:18px 18px 0}
+        .qt-recipient{position:absolute;left:112px;top:60px;width:260px;text-align:center;font-size:18px;line-height:1.45;font-weight:900;text-decoration:underline;text-underline-offset:3px}
+        .qt-intro{position:absolute;left:84px;bottom:22px;font-size:13px}
+        .qt-below{position:absolute;left:0;right:0;bottom:5px;text-align:center;font-size:16px;letter-spacing:28px;font-weight:700}
+        .qt-company{position:absolute;right:16px;top:22px;width:200px;text-align:right;font-size:11px;line-height:1.35}
+        .qt-company b{font-size:12px}
+        .qt-stamp{position:absolute;right:15px;top:105px;width:56px;height:56px;object-fit:contain;opacity:.9}
+        .qt-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
+        .qt-table th,.qt-table td{border:1.5px solid #111;padding:6px 5px;vertical-align:middle}
+        .qt-table th{text-align:center;font-weight:900}
+        .qt-center{text-align:center}
+        .qt-num{text-align:right;white-space:nowrap}
+        .qt-orange td{height:20px;background:#ffc993;padding:0}
+        .qt-items th{height:26px}
+        .qt-items td{height:44px}
+        .qt-item{font-size:15px;font-weight:900;line-height:1.15}
+        .qt-total th,.qt-total td{height:26px;font-size:14px;font-weight:900}
+        .qt-bottom{padding:0 0 0 0}
+        .qt-bottom-grid{display:grid;grid-template-columns:210px 1fr;border-top:1.5px solid #111;font-size:12px;min-height:126px}
+        .qt-bottom-left{border-right:1.5px solid #111;padding:8px 8px;line-height:1.55;font-weight:900}
+        .qt-bottom-right{padding:8px 8px;line-height:1.55}
+        .qt-bullet{display:grid;grid-template-columns:120px 1fr;gap:0}
+        .qt-bullet div:nth-child(odd){font-weight:900}
+      </style>
+      <div class="qt-page">
+        <div class="qt-border">
+          <div class="qt-title">견 적 서</div>
+
+          <div class="qt-top">
+            <div class="qt-recipient">
+              ${q2_esc(d.customer || "")}<br>
+              ${q2_esc(d.recipient || "")} 귀하
+            </div>
+            <div class="qt-company">
+              <b>${q2_esc(d.company_name || "쿠키혼레이저 주식회사")}</b><br>
+              ${q2_esc(d.company_addr || "경기 화성시 송산면 화성로 316-42")}<br>
+              Tel : ${q2_esc(d.sender_tel || "")}<br>
+              Fax : ${q2_esc(d.sender_fax || "")}<br>
+              <span style="color:#2563eb">${q2_esc(d.homepage || "")}</span><br>
+              발신 : ${q2_esc(d.sender || "")}<br>
+              송부일 : ${q2_dateKo(d.quote_date)}
+            </div>
+            ${stamp}
+            <div class="qt-intro">아래와 같이 견적합니다.</div>
+            <div class="qt-below">- 아래 -</div>
+          </div>
+
+          <table class="qt-table qt-items">
+            <colgroup>
+              <col style="width:70px">
+              <col style="width:150px">
+              <col style="width:170px">
+              <col style="width:36px">
+              <col style="width:80px">
+              <col style="width:86px">
+              <col style="width:60px">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>품명</th>
+                <th>내용</th>
+                <th>수량</th>
+                <th>단가</th>
+                <th>총금액(1set)</th>
+                <th>비 고</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="qt-orange"><td colspan="7"></td></tr>
+              ${q2_printRows(d.items)}
+            </tbody>
+          </table>
+
+          <table class="qt-table qt-total">
+            <colgroup><col style="width:210px"><col></colgroup>
+            <tr>
+              <th>견적가</th>
+              <td class="qt-center">금&nbsp;&nbsp; ${q2_moneyKo(d.total)}정&nbsp; (₩${q2_num(d.total)})</td>
+            </tr>
+          </table>
+
+          <div class="qt-bottom">
+            <div class="qt-bottom-grid">
+              <div class="qt-bottom-left">
+                ■ 납&nbsp;&nbsp;&nbsp;&nbsp;기<br>
+                ■ 결제조건<br>
+                ■ 견적유효기간<br>
+                ■ 기&nbsp;&nbsp;&nbsp;&nbsp;타
+              </div>
+              <div class="qt-bottom-right">
+                <div class="qt-bullet">
+                  <div>납기</div><div>${q2_esc(d.delivery || "")}</div>
+                  <div>결제조건</div><div>${q2_esc(d.payment || "")}</div>
+                  <div>견적유효기간</div><div>${q2_esc(d.valid || "")}</div>
+                  <div>기타</div><div>${q2_esc(d.etc || "")}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  window.quote2_print = function(){
+    const d=quote2_save(true);
+    const pc=q2_el("printContainer") || document.body.appendChild(document.createElement("div"));
+    pc.id="printContainer";
+    pc.classList.remove("hidden");
+    pc.innerHTML=q2_printHtml(d);
+    setTimeout(()=>{
+      window.print();
+      setTimeout(()=>{ pc.classList.add("hidden"); pc.innerHTML=""; }, 700);
+    },150);
+  };
+
+  function q2_install(){
+    if(window.__quote2_pdf_installed) return;
+    if(typeof window.switchTab !== "function") return;
+    const original = window.switchTab;
+    window.switchTab = function(tab){
+      if(tab === "quotes"){
+        quote2_open();
+        return;
+      }
+      return original.apply(this, arguments);
+    };
+    window.__quote2_pdf_installed = true;
+  }
+  q2_install();
+  let tries=0;
+  const t=setInterval(()=>{
+    q2_install();
+    tries++;
+    if(window.__quote2_pdf_installed || tries>20) clearInterval(t);
+  },300);
+})();
+</script>
+
+
     <!-- 앱 초기화 -->
     <script>
         // 시간 자동 동기화 설정
@@ -1237,7 +1803,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'HIWORKS-WEB-LINK-v11';
+        mark.textContent = 'QUOTE-PDF-v1';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
