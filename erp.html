@@ -346,12 +346,106 @@
             catch(e){ return []; }
         }
         function saveHistory(list){ localStorage.setItem(PO2_KEY, JSON.stringify(list)); }
+
+        function po2_getDbClient(){
+            try { return getClient && getClient(); } catch(e) {}
+            try { if(window.supabaseClient) return window.supabaseClient; } catch(e) {}
+            try { if(window.db) return window.db; } catch(e) {}
+            try { if(window.client) return window.client; } catch(e) {}
+            return null;
+        }
+
+        function po2_toDbRow(data){
+            return {
+                id: data.id,
+                po_no: data.po_no || '',
+                po_type: data.type || 'domestic',
+                po_date: data.po_date || null,
+                supplier_name: data.supplier_name || '',
+                supplier_email: data.supplier_email || '',
+                total: Number(data.total || 0),
+                status: data.status || '',
+                public_url: data.public_url || '',
+                po_data: data
+            };
+        }
+
+        function po2_fromDbRow(row){
+            return row && row.po_data ? Object.assign({}, row.po_data, {
+                id: row.id,
+                po_no: row.po_no || row.po_data.po_no,
+                type: row.po_type || row.po_data.type,
+                status: row.status || row.po_data.status,
+                public_url: row.public_url || row.po_data.public_url,
+                updated_at: row.updated_at || row.po_data.updated_at
+            }) : row;
+        }
+
+        async function po2_loadCloudHistory(){
+            const client = po2_getDbClient();
+            if(!client || !client.from) return loadHistory();
+            try{
+                const { data, error } = await client
+                    .from('erp_purchase_orders')
+                    .select('*')
+                    .order('updated_at', { ascending:false })
+                    .limit(500);
+                if(error) throw error;
+                const list = (data || []).map(po2_fromDbRow).filter(Boolean);
+                if(list.length) saveHistory(list);
+                return list;
+            }catch(e){
+                console.warn('발주서 Supabase 조회 실패, 로컬 이력 사용:', e);
+                return loadHistory();
+            }
+        }
+
+        async function po2_getCloudHistoryById(id){
+            const client = po2_getDbClient();
+            if(client && client.from){
+                try{
+                    const { data, error } = await client
+                        .from('erp_purchase_orders')
+                        .select('*')
+                        .eq('id', id)
+                        .maybeSingle();
+                    if(error) throw error;
+                    if(data) return po2_fromDbRow(data);
+                }catch(e){
+                    console.warn('발주서 단건 조회 실패, 로컬 이력 사용:', e);
+                }
+            }
+            return loadHistory().find(x => x.id === id);
+        }
+
+        async function po2_deleteCloudHistory(id){
+            const client = po2_getDbClient();
+            if(client && client.from){
+                try{
+                    const { error } = await client.from('erp_purchase_orders').delete().eq('id', id);
+                    if(error) throw error;
+                }catch(e){
+                    console.warn('발주서 Supabase 삭제 실패:', e);
+                    alert('Supabase 삭제 중 오류가 발생했습니다. 로컬 이력만 삭제될 수 있습니다.\n' + (e.message || e));
+                }
+            }
+        }
+
         function upsertHistory(data){
             const list = loadHistory();
             const idx = list.findIndex(x => x.id === data.id || (data.po_no && x.po_no === data.po_no));
             if (idx >= 0) list[idx] = Object.assign({}, list[idx], data);
             else list.unshift(data);
             saveHistory(list.slice(0,500));
+
+            const client = po2_getDbClient();
+            if(client && client.from){
+                client.from('erp_purchase_orders')
+                    .upsert(po2_toDbRow(data), { onConflict:'id' })
+                    .then(({ error }) => {
+                        if(error) console.error('발주서 Supabase 저장 실패:', error);
+                    });
+            }
         }
 
         window.po2_openMenu = function(btn){
@@ -364,7 +458,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">QUOTE-PDF-v4-TABLE-ADJUST</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">CLOUD-HISTORY-v1</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -407,25 +501,30 @@
                                 <tbody id="po2_history_body"></tbody>
                             </table>
                         </div>
-                        <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800"><b>저장 안내</b><br>현재 발주서 기록은 브라우저 저장소에 저장됩니다. 같은 PC/브라우저에서 검색 가능합니다.</div>
+                        <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800"><b>저장 안내</b><br>현재 발주서 기록은 Supabase 공용 DB에 저장됩니다. 다른 PC/다른 로그인 계정에서도 조회 가능합니다.</div>
                     </div>
                 </div>`;
             po2_renderHistory();
             po2_loadPartners();
         };
 
-        window.po2_renderHistory = function(){
+        window.po2_renderHistory = async function(){
             const body = el('po2_history_body'); if (!body) return;
+            body.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500">Supabase 이력을 불러오는 중입니다...</td></tr>`;
+
             const keyword = val('po2_keyword').toLowerCase().trim();
             const tf = val('po2_type') || 'all';
             const sf = val('po2_status') || 'all';
-            let list = loadHistory().filter(po => {
+            let list = await po2_loadCloudHistory();
+
+            list = list.filter(po => {
                 const typeOk = tf === 'all' || po.type === tf;
                 const statusOk = sf === 'all' || po.status === sf;
                 const text = [po.po_no, po.po_date, po.supplier_name, po.supplier_manager, po.supplier_email, po.status, ...(po.items || []).map(i => (i.name || '') + ' ' + (i.spec || ''))].join(' ').toLowerCase();
                 return typeOk && statusOk && (!keyword || text.includes(keyword));
             });
             list.sort((a,b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+
             if (!list.length) { body.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500">저장된 발주서가 없습니다.</td></tr>`; return; }
             body.innerHTML = list.map(po => `
                 <tr class="border-t hover:bg-slate-50">
@@ -440,13 +539,14 @@
                 </tr>`).join('');
         };
 
-        window.po2_openSaved = function(id){
-            const po = loadHistory().find(x => x.id === id);
+        window.po2_openSaved = async function(id){
+            const po = await po2_getCloudHistoryById(id);
             if (!po) { alert('발주서를 찾지 못했습니다.'); return; }
             if (po.type === 'overseas') po2_renderOverseas(po); else po2_renderDomestic(po);
         };
-        window.po2_deleteSaved = function(id){
+        window.po2_deleteSaved = async function(id){
             if (!confirm('이 발주서 기록을 삭제할까요?')) return;
+            await po2_deleteCloudHistory(id);
             saveHistory(loadHistory().filter(x => x.id !== id));
             po2_renderHistory();
         };
@@ -555,17 +655,68 @@
             } catch(e) { return []; }
         }
 
-        function po2_saveMailLog(log){
-            const arr = po2_loadMailLogs();
-            arr.unshift({ id: 'mail_' + Date.now(), sent_at: new Date().toISOString(), ...log });
-            localStorage.setItem(PO2_MAIL_LOG_KEY, JSON.stringify(arr.slice(0, 300)));
+        async function po2_loadMailLogsCloud(){
+            const client = po2_getDbClient();
+            if(!client || !client.from) return po2_loadMailLogs();
+            try{
+                const { data, error } = await client
+                    .from('erp_po_mail_logs')
+                    .select('*')
+                    .order('sent_at', { ascending:false })
+                    .limit(300);
+                if(error) throw error;
+                const logs = (data || []).map(row => ({
+                    id: row.id,
+                    sent_at: row.sent_at,
+                    type: row.po_type,
+                    po_no: row.po_no,
+                    to: row.to_email,
+                    subject: row.subject,
+                    attachmentName: row.public_url ? '웹 발주서 링크' : '',
+                    url: row.public_url,
+                    ok: row.ok,
+                    error: row.error,
+                    messageId: row.message_id
+                }));
+                if(logs.length) localStorage.setItem(PO2_MAIL_LOG_KEY, JSON.stringify(logs.slice(0,300)));
+                return logs;
+            }catch(e){
+                console.warn('메일 이력 Supabase 조회 실패, 로컬 이력 사용:', e);
+                return po2_loadMailLogs();
+            }
         }
 
-        window.po2_renderMailHistory = function(){
+        function po2_saveMailLog(log){
+            const fullLog = { id: log.id || ('mail_' + Date.now()), sent_at: new Date().toISOString(), ...log };
+            const arr = po2_loadMailLogs();
+            arr.unshift(fullLog);
+            localStorage.setItem(PO2_MAIL_LOG_KEY, JSON.stringify(arr.slice(0, 300)));
+
+            const client = po2_getDbClient();
+            if(client && client.from){
+                client.from('erp_po_mail_logs').upsert({
+                    id: fullLog.id,
+                    po_id: fullLog.po_id || '',
+                    po_no: fullLog.po_no || '',
+                    po_type: fullLog.type || '',
+                    to_email: fullLog.to || '',
+                    subject: fullLog.subject || '',
+                    public_url: fullLog.url || '',
+                    ok: fullLog.ok !== false,
+                    error: fullLog.error || '',
+                    message_id: fullLog.messageId || '',
+                    sent_at: fullLog.sent_at
+                }, { onConflict:'id' }).then(({ error }) => {
+                    if(error) console.error('메일 이력 Supabase 저장 실패:', error);
+                });
+            }
+        }
+
+        window.po2_renderMailHistory = async function(){
             const body = el('po2_mail_history_body');
             if (!body) return;
 
-            const logs = po2_loadMailLogs();
+            const logs = await po2_loadMailLogsCloud();
             if (!logs.length) {
                 body.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">아직 하이웍스 메일 발송 이력이 없습니다.</td></tr>`;
                 return;
@@ -601,7 +752,7 @@
                 <div class="flex flex-wrap justify-between items-center gap-3 mb-5">
                     <div>
                         <h2 class="text-2xl font-black text-slate-800">메일 발송 이력</h2>
-                        <p class="text-sm text-slate-500 mt-1">웹 발주서 링크 하이웍스 발송 기록입니다. 현재는 이 PC/브라우저에 저장됩니다.</p>
+                        <p class="text-sm text-slate-500 mt-1">웹 발주서 링크 하이웍스 발송 기록입니다. Supabase 공용 DB에 저장되어 다른 PC에서도 조회됩니다.</p>
                     </div>
                     <button type="button" onclick="po2_renderMailHistory()" class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-bold hover:bg-purple-200 text-sm">
                         <i class="fa-solid fa-rotate mr-1"></i>이력 새로고침
@@ -1241,11 +1392,103 @@ KOOKYHON LASER`;
     }catch(e){ return []; }
   }
   function q2_saveAll(arr){ localStorage.setItem(QKEY, JSON.stringify(arr)); }
+
+  function q2_getDbClient(){
+    try { if(window.supabaseClient) return window.supabaseClient; } catch(e) {}
+    try { if(window.db) return window.db; } catch(e) {}
+    try { if(window.client) return window.client; } catch(e) {}
+    try { if(typeof supabaseClient !== "undefined") return supabaseClient; } catch(e) {}
+    try { if(typeof db !== "undefined") return db; } catch(e) {}
+    try { if(typeof client !== "undefined") return client; } catch(e) {}
+    return null;
+  }
+
+  function q2_toDbRow(d){
+    return {
+      id: d.id,
+      quote_no: d.quote_no || '',
+      quote_date: d.quote_date || null,
+      customer: d.customer || '',
+      recipient: d.recipient || '',
+      total: Number(d.total || 0),
+      memo: d.memo || '',
+      quote_data: d
+    };
+  }
+
+  function q2_fromDbRow(row){
+    return row && row.quote_data ? Object.assign({}, row.quote_data, {
+      id: row.id,
+      quote_no: row.quote_no || row.quote_data.quote_no,
+      quote_date: row.quote_date || row.quote_data.quote_date,
+      customer: row.customer || row.quote_data.customer,
+      recipient: row.recipient || row.quote_data.recipient,
+      total: Number(row.total || row.quote_data.total || 0),
+      memo: row.memo || row.quote_data.memo,
+      updated_at: row.updated_at || row.quote_data.updated_at
+    }) : row;
+  }
+
+  async function q2_loadCloud(){
+    const client = q2_getDbClient();
+    if(!client || !client.from) return q2_load();
+    try{
+      const { data, error } = await client
+        .from('erp_quotes')
+        .select('*')
+        .order('updated_at', { ascending:false })
+        .limit(500);
+      if(error) throw error;
+      const list = (data || []).map(q2_fromDbRow).filter(Boolean);
+      if(list.length) q2_saveAll(list);
+      return list;
+    }catch(e){
+      console.warn('견적서 Supabase 조회 실패, 로컬 이력 사용:', e);
+      return q2_load();
+    }
+  }
+
+  async function q2_getCloudById(id){
+    const client = q2_getDbClient();
+    if(client && client.from){
+      try{
+        const { data, error } = await client.from('erp_quotes').select('*').eq('id', id).maybeSingle();
+        if(error) throw error;
+        if(data) return q2_fromDbRow(data);
+      }catch(e){
+        console.warn('견적서 단건 조회 실패, 로컬 이력 사용:', e);
+      }
+    }
+    return q2_load().find(x=>x.id===id);
+  }
+
+  async function q2_deleteCloud(id){
+    const client = q2_getDbClient();
+    if(client && client.from){
+      try{
+        const { error } = await client.from('erp_quotes').delete().eq('id', id);
+        if(error) throw error;
+      }catch(e){
+        console.warn('견적서 Supabase 삭제 실패:', e);
+        alert('Supabase 삭제 중 오류가 발생했습니다. 로컬 이력만 삭제될 수 있습니다.\n' + (e.message || e));
+      }
+    }
+  }
+
   function q2_upsert(d){
     const arr=q2_load();
     const idx=arr.findIndex(x=>x.id===d.id);
     if(idx>=0) arr[idx]=d; else arr.unshift(d);
     q2_saveAll(arr);
+
+    const client = q2_getDbClient();
+    if(client && client.from){
+      client.from('erp_quotes')
+        .upsert(q2_toDbRow(d), { onConflict:'id' })
+        .then(({ error }) => {
+          if(error) console.error('견적서 Supabase 저장 실패:', error);
+        });
+    }
   }
   function q2_nextNo(){
     const day=q2_dateCompact(q2_today());
@@ -1286,7 +1529,7 @@ KOOKYHON LASER`;
     quote2_renderList();
   };
 
-  window.quote2_renderList = function(){
+  window.quote2_renderList = async function(){
     q2_activeQuotesNav();
     const today=q2_today();
     const from=q2_el("q2_filter_from")?.value || "2025-06-16";
@@ -1295,7 +1538,7 @@ KOOKYHON LASER`;
     const manager=(q2_el("q2_filter_manager")?.value || "").trim().toLowerCase();
     const memo=(q2_el("q2_filter_memo")?.value || "").trim().toLowerCase();
 
-    let rows=q2_load();
+    let rows=await q2_loadCloud();
     rows=rows.filter(x=>{
       const d=x.quote_date || "";
       if(from && d < from) return false;
@@ -1377,9 +1620,9 @@ KOOKYHON LASER`;
     `);
   };
 
-  window.quote2_renderForm = function(id){
+  window.quote2_renderForm = async function(id){
     q2_activeQuotesNav();
-    const old = id ? q2_load().find(x=>x.id===id) : null;
+    const old = id ? await q2_getCloudById(id) : null;
     const d = old || {
       id:q2_makeId(),
       quote_no:q2_nextNo(),
@@ -1578,8 +1821,9 @@ KOOKYHON LASER`;
     quote2_renderForm(d.id);
   };
 
-  window.quote2_delete = function(id){
+  window.quote2_delete = async function(id){
     if(!confirm("이 견적서를 삭제할까요?")) return;
+    await q2_deleteCloud(id);
     q2_saveAll(q2_load().filter(x=>x.id!==id));
     quote2_renderList();
   };
@@ -1802,7 +2046,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'QUOTE-PDF-v4-TABLE-ADJUST';
+        mark.textContent = 'CLOUD-HISTORY-v1';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
