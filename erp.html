@@ -383,6 +383,52 @@
             }) : row;
         }
 
+        function po2_setCurrentId(type, id){
+            const hidden = el(type === 'domestic' ? 'dom_po_id' : 'exp_po_id');
+            if(hidden && id) hidden.value = id;
+        }
+
+        function po2_refreshProjectCache(data){
+            try{
+                if(!Array.isArray(window.__project2_orders) || !data) return;
+                const idx = window.__project2_orders.findIndex(x => x.id === data.id || (data.po_no && x.po_no === data.po_no));
+                if(idx >= 0) window.__project2_orders[idx] = Object.assign({}, window.__project2_orders[idx], data);
+                else window.__project2_orders.unshift(data);
+                if(typeof window.project2_renderSummary === 'function') window.project2_renderSummary();
+            }catch(e){}
+        }
+
+        async function po2_syncCloudHistory(data){
+            const client = po2_getDbClient();
+            if(!client || !client.from) return;
+            try{
+                if(data.po_no){
+                    const { data: existing, error: findError } = await client
+                        .from('erp_purchase_orders')
+                        .select('id')
+                        .eq('po_no', data.po_no)
+                        .order('updated_at', { ascending:false })
+                        .limit(1)
+                        .maybeSingle();
+
+                    if(findError) throw findError;
+                    if(existing && existing.id){
+                        data.id = existing.id;
+                        po2_setCurrentId(data.type, data.id);
+                    }
+                }
+
+                const { error } = await client
+                    .from('erp_purchase_orders')
+                    .upsert(po2_toDbRow(data), { onConflict:'id' });
+
+                if(error) throw error;
+                po2_refreshProjectCache(data);
+            }catch(e){
+                console.error('발주서 Supabase 저장 실패:', e);
+            }
+        }
+
         async function po2_loadCloudHistory(){
             const client = po2_getDbClient();
             if(!client || !client.from) return loadHistory();
@@ -440,14 +486,9 @@
             else list.unshift(data);
             saveHistory(list.slice(0,500));
 
-            const client = po2_getDbClient();
-            if(client && client.from){
-                client.from('erp_purchase_orders')
-                    .upsert(po2_toDbRow(data), { onConflict:'id' })
-                    .then(({ error }) => {
-                        if(error) console.error('발주서 Supabase 저장 실패:', error);
-                    });
-            }
+            po2_setCurrentId(data.type, data.id);
+            po2_refreshProjectCache(data);
+            po2_syncCloudHistory(data);
         }
 
         window.po2_openMenu = function(btn){
@@ -460,7 +501,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">PROJECT-CLOUD-v1</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">PROJECT-CLOUD-v2-STABLE-PO</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -630,7 +671,15 @@
             if (type === 'domestic') { const vat=Math.round(subtotal*0.1); return {id:val('dom_po_id')||makeId(), type, po_no:val('dom_po_no'), po_date:val('dom_po_date'), project_name:val('dom_project_name'), writer:val('dom_writer'), delivery_date:val('dom_delivery_date'), buyer_name:val('dom_buyer_name'), buyer_biz:val('dom_buyer_biz'), buyer_addr:val('dom_buyer_addr'), buyer_tel:val('dom_buyer_tel'), buyer_email:val('dom_buyer_email'), supplier_name:val('dom_supplier_name'), supplier_biz:val('dom_supplier_biz'), supplier_manager:val('dom_supplier_manager'), supplier_tel:val('dom_supplier_tel'), supplier_email:val('dom_supplier_email'), supplier_addr:val('dom_supplier_addr'), delivery_place:val('dom_delivery_place'), note:val('dom_note'), currency:'KRW', subtotal, vat, total:subtotal+vat, items:it, updated_at:now}; }
             return {id:val('exp_po_id')||makeId(), type, po_no:val('exp_po_no'), po_date:val('exp_po_date'), project_name:val('exp_project_name'), delivery_date:val('exp_delivery_date'), currency:val('exp_currency')||'USD', incoterms:val('exp_incoterms'), buyer_name:val('exp_buyer_name'), buyer_addr:val('exp_buyer_addr'), buyer_tel:val('exp_buyer_tel'), buyer_email:val('exp_buyer_email'), supplier_name:val('exp_supplier_name'), supplier_biz:val('exp_supplier_biz'), supplier_manager:val('exp_supplier_manager'), supplier_tel:val('exp_supplier_tel'), supplier_email:val('exp_supplier_email'), supplier_addr:val('exp_supplier_addr'), destination:val('exp_destination'), payment_terms:val('exp_payment_terms'), note:val('exp_note'), subtotal, vat:0, total:subtotal, items:it, updated_at:now};
         }
-        window.po2_saveCurrent = function(type, status='저장', silent=false){ const data=collect(type); data.status=status; upsertHistory(data); if (!silent) alert('발주서를 저장했습니다.'); return data; };
+        window.po2_saveCurrent = function(type, status='저장', silent=false){
+            const data = collect(type);
+            data.status = status;
+            data.updated_at = new Date().toISOString();
+            po2_setCurrentId(type, data.id);
+            upsertHistory(data);
+            if (!silent) alert('발주서를 저장했습니다.\n프로젝트 발주 집계도 같이 업데이트됩니다.');
+            return data;
+        };
         window.po2_saveAs = function(type){
             const data = collect(type);
             const currentNo = data.po_no || '';
@@ -641,12 +690,13 @@
             data.po_no = newNo.trim() || suggested;
             data.status = type === 'domestic' ? '다른 이름 저장' : 'Save As';
             data.updated_at = new Date().toISOString();
+            po2_setCurrentId(type, data.id);
             upsertHistory(data);
             const idField = el(type === 'domestic' ? 'dom_po_id' : 'exp_po_id');
             const noField = el(type === 'domestic' ? 'dom_po_no' : 'exp_po_no');
             if (idField) idField.value = data.id;
             if (noField) noField.value = data.po_no;
-            alert(type === 'domestic' ? '다른 이름으로 저장했습니다.' : 'Saved as a new purchase order.');
+            alert(type === 'domestic' ? '다른 이름으로 저장했습니다.\n새 발주서로 프로젝트 집계에 반영됩니다.' : 'Saved as a new purchase order and updated project summary.');
             return data;
         };
         const PO2_MAIL_LOG_KEY = 'kooky_po_mail_logs_v1';
@@ -1156,6 +1206,7 @@ KOOKYHON LASER`;
 
                 po2_saveMailLog({
                     ok: true,
+                    po_id: d.id,
                     type,
                     po_no: d.po_no,
                     to: d.supplier_email,
@@ -1174,6 +1225,7 @@ KOOKYHON LASER`;
 
                 po2_saveMailLog({
                     ok: false,
+                    po_id: d.id,
                     type,
                     po_no: d.po_no,
                     to: d.supplier_email,
@@ -2049,7 +2101,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'PROJECT-CLOUD-v1';
+        mark.textContent = 'PROJECT-CLOUD-v2-STABLE-PO';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
@@ -2059,7 +2111,7 @@ window.addEventListener('load', function(){
 
 <script id="project-po-summary-module-v1">
 (function(){
-  const PROJECT_VERSION = "PROJECT-CLOUD-v1";
+  const PROJECT_VERSION = "PROJECT-CLOUD-v2-STABLE-PO";
 
   function p_el(id){ return document.getElementById(id); }
   function p_num(v){ return Number(v || 0).toLocaleString("ko-KR"); }
@@ -2175,7 +2227,7 @@ window.addEventListener('load', function(){
         <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
           <div>
             <h1 class="text-3xl font-black text-slate-800 border-l-8 border-cyan-500 pl-4">프로젝트 관리</h1>
-            <p class="text-slate-500 mt-2">프로젝트명으로 저장된 발주 품목과 비용을 한 번에 확인합니다.</p>
+            <p class="text-slate-500 mt-2">프로젝트명으로 저장된 발주 품목과 비용을 한 번에 확인합니다. 같은 품목이 여러 발주서에 있어도 발주번호별로 따로 집계됩니다.</p>
           </div>
           <button type="button" onclick="project2_open()" class="px-5 py-3 bg-slate-100 rounded-lg font-bold hover:bg-slate-200">새로고침</button>
         </div>
