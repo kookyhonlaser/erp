@@ -333,8 +333,22 @@
         function today(){ return new Date().toISOString().slice(0,10); }
         function ymd(){ return today().replaceAll('-',''); }
         function makeId(){ return 'po_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
-        function domesticNo(){ return 'PO-' + ymd() + '-001'; }
-        function overseasNo(){ return 'PO-EXP-' + ymd() + '-001'; }
+        function po2_nextPoNo(type){
+            const date = ymd();
+            const prefix = type === 'overseas' ? ('PO-EXP-' + date + '-') : ('PO-' + date + '-');
+            let list = [];
+            try { list = JSON.parse(localStorage.getItem(PO2_KEY) || '[]'); } catch(e) { list = []; }
+            let max = 0;
+            (Array.isArray(list) ? list : []).forEach(po => {
+                const no = String(po && po.po_no ? po.po_no : '');
+                if (!no.startsWith(prefix)) return;
+                const seq = parseInt(no.slice(prefix.length), 10);
+                if (!isNaN(seq) && seq > max) max = seq;
+            });
+            return prefix + String(max + 1).padStart(3, '0');
+        }
+        function domesticNo(){ return po2_nextPoNo('domestic'); }
+        function overseasNo(){ return po2_nextPoNo('overseas'); }
 
         function activeNav(btn){
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-slate-800','text-white','font-bold'));
@@ -347,6 +361,23 @@
         }
         function saveHistory(list){ localStorage.setItem(PO2_KEY, JSON.stringify(list)); }
 
+        function po2_poNoExistsLocal(poNo, currentId){
+            const no = String(poNo || '').trim();
+            if(!no) return false;
+            return loadHistory().some(x => String(x.po_no || '') === no && String(x.id || '') !== String(currentId || ''));
+        }
+
+        function po2_ensureUniqueNoForNew(type, data, wasNew){
+            if(!data || !wasNew) return data;
+            if(!po2_poNoExistsLocal(data.po_no, data.id)) return data;
+
+            const newNo = po2_nextPoNo(type);
+            data.po_no = newNo;
+            const noField = el(type === 'domestic' ? 'dom_po_no' : 'exp_po_no');
+            if(noField) noField.value = newNo;
+            return data;
+        }
+
         function po2_getDbClient(){
             try { return getClient && getClient(); } catch(e) {}
             try { if(window.supabaseClient) return window.supabaseClient; } catch(e) {}
@@ -356,18 +387,20 @@
         }
 
         function po2_toDbRow(data){
+            const cleanData = Object.assign({}, data || {});
+            delete cleanData.__is_new_record;
             return {
-                id: data.id,
-                po_no: data.po_no || '',
-                po_type: data.type || 'domestic',
-                po_date: data.po_date || null,
-                supplier_name: data.supplier_name || '',
-                supplier_email: data.supplier_email || '',
-                project_name: data.project_name || data.project || '',
-                total: Number(data.total || 0),
-                status: data.status || '',
-                public_url: data.public_url || '',
-                po_data: data
+                id: cleanData.id,
+                po_no: cleanData.po_no || '',
+                po_type: cleanData.type || 'domestic',
+                po_date: cleanData.po_date || null,
+                supplier_name: cleanData.supplier_name || '',
+                supplier_email: cleanData.supplier_email || '',
+                project_name: cleanData.project_name || cleanData.project || '',
+                total: Number(cleanData.total || 0),
+                status: cleanData.status || '',
+                public_url: cleanData.public_url || '',
+                po_data: cleanData
             };
         }
 
@@ -398,6 +431,37 @@
             }catch(e){}
         }
 
+        async function po2_nextPoNoFromCloud(type, client){
+            const date = ymd();
+            const prefix = type === 'overseas' ? ('PO-EXP-' + date + '-') : ('PO-' + date + '-');
+            let max = 0;
+
+            try{
+                const { data, error } = await client
+                    .from('erp_purchase_orders')
+                    .select('po_no')
+                    .like('po_no', prefix + '%')
+                    .limit(1000);
+                if(error) throw error;
+                (data || []).forEach(row => {
+                    const no = String(row.po_no || '');
+                    const seq = parseInt(no.slice(prefix.length), 10);
+                    if(!isNaN(seq) && seq > max) max = seq;
+                });
+            }catch(e){
+                console.warn('클라우드 발주번호 확인 실패, 로컬 번호 사용:', e);
+            }
+
+            loadHistory().forEach(po => {
+                const no = String(po.po_no || '');
+                if(!no.startsWith(prefix)) return;
+                const seq = parseInt(no.slice(prefix.length), 10);
+                if(!isNaN(seq) && seq > max) max = seq;
+            });
+
+            return prefix + String(max + 1).padStart(3, '0');
+        }
+
         async function po2_syncCloudHistory(data){
             const client = po2_getDbClient();
             if(!client || !client.from) return;
@@ -405,14 +469,20 @@
                 if(data.po_no){
                     const { data: existing, error: findError } = await client
                         .from('erp_purchase_orders')
-                        .select('id')
+                        .select('id, po_no')
                         .eq('po_no', data.po_no)
                         .order('updated_at', { ascending:false })
                         .limit(1)
                         .maybeSingle();
 
                     if(findError) throw findError;
-                    if(existing && existing.id){
+
+                    // 새 발주서인데 같은 발주번호가 이미 있으면 기존 건을 덮어쓰지 않고 새 번호를 발급합니다.
+                    if(existing && existing.id && String(existing.id) !== String(data.id) && data.__is_new_record){
+                        data.po_no = await po2_nextPoNoFromCloud(data.type, client);
+                        const noField = el(data.type === 'domestic' ? 'dom_po_no' : 'exp_po_no');
+                        if(noField) noField.value = data.po_no;
+                    } else if(existing && existing.id){
                         data.id = existing.id;
                         po2_setCurrentId(data.type, data.id);
                     }
@@ -423,6 +493,10 @@
                     .upsert(po2_toDbRow(data), { onConflict:'id' });
 
                 if(error) throw error;
+                // 클라우드 저장 중 발주번호가 바뀌었을 수 있으므로 로컬 이력도 다시 맞춥니다.
+                const list = loadHistory();
+                const idx = list.findIndex(x => x.id === data.id);
+                if(idx >= 0) { list[idx] = Object.assign({}, list[idx], data); saveHistory(list.slice(0,500)); }
                 po2_refreshProjectCache(data);
             }catch(e){
                 console.error('발주서 Supabase 저장 실패:', e);
@@ -501,7 +575,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">PROJECT-CLOUD-v2-STABLE-PO</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">PROJECT-CLOUD-v3-AUTO-NO</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -672,7 +746,10 @@
             return {id:val('exp_po_id')||makeId(), type, po_no:val('exp_po_no'), po_date:val('exp_po_date'), project_name:val('exp_project_name'), delivery_date:val('exp_delivery_date'), currency:val('exp_currency')||'USD', incoterms:val('exp_incoterms'), buyer_name:val('exp_buyer_name'), buyer_addr:val('exp_buyer_addr'), buyer_tel:val('exp_buyer_tel'), buyer_email:val('exp_buyer_email'), supplier_name:val('exp_supplier_name'), supplier_biz:val('exp_supplier_biz'), supplier_manager:val('exp_supplier_manager'), supplier_tel:val('exp_supplier_tel'), supplier_email:val('exp_supplier_email'), supplier_addr:val('exp_supplier_addr'), destination:val('exp_destination'), payment_terms:val('exp_payment_terms'), note:val('exp_note'), subtotal, vat:0, total:subtotal, items:it, updated_at:now};
         }
         window.po2_saveCurrent = function(type, status='저장', silent=false){
-            const data = collect(type);
+            const idBeforeSave = val(type === 'domestic' ? 'dom_po_id' : 'exp_po_id');
+            let data = collect(type);
+            data.__is_new_record = !idBeforeSave;
+            data = po2_ensureUniqueNoForNew(type, data, !idBeforeSave);
             data.status = status;
             data.updated_at = new Date().toISOString();
             po2_setCurrentId(type, data.id);
@@ -688,6 +765,8 @@
             if (newNo === null) return;
             data.id = makeId();
             data.po_no = newNo.trim() || suggested;
+            data.__is_new_record = true;
+            data = po2_ensureUniqueNoForNew(type, data, true);
             data.status = type === 'domestic' ? '다른 이름 저장' : 'Save As';
             data.updated_at = new Date().toISOString();
             po2_setCurrentId(type, data.id);
@@ -2101,7 +2180,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'PROJECT-CLOUD-v2-STABLE-PO';
+        mark.textContent = 'PROJECT-CLOUD-v3-AUTO-NO';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
@@ -2111,7 +2190,7 @@ window.addEventListener('load', function(){
 
 <script id="project-po-summary-module-v1">
 (function(){
-  const PROJECT_VERSION = "PROJECT-CLOUD-v2-STABLE-PO";
+  const PROJECT_VERSION = "PROJECT-CLOUD-v3-AUTO-NO";
 
   function p_el(id){ return document.getElementById(id); }
   function p_num(v){ return Number(v || 0).toLocaleString("ko-KR"); }
@@ -2227,7 +2306,7 @@ window.addEventListener('load', function(){
         <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
           <div>
             <h1 class="text-3xl font-black text-slate-800 border-l-8 border-cyan-500 pl-4">프로젝트 관리</h1>
-            <p class="text-slate-500 mt-2">프로젝트명으로 저장된 발주 품목과 비용을 한 번에 확인합니다. 같은 품목이 여러 발주서에 있어도 발주번호별로 따로 집계됩니다.</p>
+            <p class="text-slate-500 mt-2">프로젝트명으로 저장된 발주 품목과 비용을 한 번에 확인합니다. 같은 품목이 여러 발주서에 있어도 발주번호별로 따로 집계됩니다. 새 발주서는 기존 번호를 덮어쓰지 않도록 자동으로 다음 번호를 발급합니다.</p>
           </div>
           <button type="button" onclick="project2_open()" class="px-5 py-3 bg-slate-100 rounded-lg font-bold hover:bg-slate-200">새로고침</button>
         </div>
