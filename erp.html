@@ -363,6 +363,7 @@
                 po_date: data.po_date || null,
                 supplier_name: data.supplier_name || '',
                 supplier_email: data.supplier_email || '',
+                project_name: data.project_name || data.project || '',
                 total: Number(data.total || 0),
                 status: data.status || '',
                 public_url: data.public_url || '',
@@ -376,6 +377,7 @@
                 po_no: row.po_no || row.po_data.po_no,
                 type: row.po_type || row.po_data.type,
                 status: row.status || row.po_data.status,
+                project_name: row.project_name || row.po_data.project_name || row.po_data.project || '',
                 public_url: row.public_url || row.po_data.public_url,
                 updated_at: row.updated_at || row.po_data.updated_at
             }) : row;
@@ -458,7 +460,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">CLOUD-HISTORY-v1</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">PROJECT-CLOUD-v1</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -486,18 +488,18 @@
                         <div class="flex flex-wrap justify-between items-center gap-3 mb-5">
                             <div>
                                 <h2 class="text-2xl font-black text-slate-800">이전 발주서 검색</h2>
-                                <p class="text-sm text-slate-500 mt-1">저장한 발주서를 발주번호, 공급처, 담당자, 품목명으로 찾습니다.</p>
+                                <p class="text-sm text-slate-500 mt-1">저장한 발주서를 발주번호, 프로젝트명, 공급처, 담당자, 품목명으로 찾습니다.</p>
                             </div>
                             <button type="button" onclick="po2_renderHistory()" class="px-4 py-2 bg-slate-100 rounded-lg font-bold hover:bg-slate-200 text-sm"><i class="fa-solid fa-rotate mr-1"></i>새로고침</button>
                         </div>
                         <div class="grid md:grid-cols-4 gap-3 mb-4">
-                            <input id="po2_keyword" oninput="po2_renderHistory()" class="input-box md:col-span-2" placeholder="발주번호 / 공급처 / 담당자 / 품목명 검색">
+                            <input id="po2_keyword" oninput="po2_renderHistory()" class="input-box md:col-span-2" placeholder="발주번호 / 프로젝트명 / 공급처 / 담당자 / 품목명 검색">
                             <select id="po2_type" onchange="po2_renderHistory()" class="input-box"><option value="all">전체</option><option value="domestic">국내용</option><option value="overseas">해외용</option></select>
                             <select id="po2_status" onchange="po2_renderHistory()" class="input-box"><option value="all">상태 전체</option><option value="저장">저장</option><option value="메일작성">메일작성</option><option value="인쇄/PDF">인쇄/PDF</option></select>
                         </div>
                         <div class="overflow-x-auto border rounded-xl">
                             <table class="w-full text-sm">
-                                <thead class="bg-slate-100"><tr><th class="p-3 text-left">구분</th><th class="p-3 text-left">발주번호</th><th class="p-3 text-left">발주일</th><th class="p-3 text-left">공급처</th><th class="p-3 text-left">담당자</th><th class="p-3 text-right">금액</th><th class="p-3 text-left">상태</th><th class="p-3 text-center">작업</th></tr></thead>
+                                <thead class="bg-slate-100"><tr><th class="p-3 text-left">구분</th><th class="p-3 text-left">발주번호</th><th class="p-3 text-left">프로젝트</th><th class="p-3 text-left">발주일</th><th class="p-3 text-left">공급처</th><th class="p-3 text-left">담당자</th><th class="p-3 text-right">금액</th><th class="p-3 text-left">상태</th><th class="p-3 text-center">작업</th></tr></thead>
                                 <tbody id="po2_history_body"></tbody>
                             </table>
                         </div>
@@ -510,7 +512,7 @@
 
         window.po2_renderHistory = async function(){
             const body = el('po2_history_body'); if (!body) return;
-            body.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500">Supabase 이력을 불러오는 중입니다...</td></tr>`;
+            body.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-500">Supabase 이력을 불러오는 중입니다...</td></tr>`;
 
             const keyword = val('po2_keyword').toLowerCase().trim();
             const tf = val('po2_type') || 'all';
@@ -520,16 +522,17 @@
             list = list.filter(po => {
                 const typeOk = tf === 'all' || po.type === tf;
                 const statusOk = sf === 'all' || po.status === sf;
-                const text = [po.po_no, po.po_date, po.supplier_name, po.supplier_manager, po.supplier_email, po.status, ...(po.items || []).map(i => (i.name || '') + ' ' + (i.spec || ''))].join(' ').toLowerCase();
+                const text = [po.po_no, po.project_name, po.project, po.po_date, po.supplier_name, po.supplier_manager, po.supplier_email, po.status, ...(po.items || []).map(i => (i.name || '') + ' ' + (i.spec || ''))].join(' ').toLowerCase();
                 return typeOk && statusOk && (!keyword || text.includes(keyword));
             });
             list.sort((a,b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
 
-            if (!list.length) { body.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500">저장된 발주서가 없습니다.</td></tr>`; return; }
+            if (!list.length) { body.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-500">저장된 발주서가 없습니다.</td></tr>`; return; }
             body.innerHTML = list.map(po => `
                 <tr class="border-t hover:bg-slate-50">
                     <td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold ${po.type === 'domestic' ? 'bg-blue-100 text-blue-700' : 'bg-cyan-100 text-cyan-700'}">${po.type === 'domestic' ? '국내' : '해외'}</span></td>
                     <td class="p-3 font-bold">${esc(po.po_no)}</td>
+                    <td class="p-3">${esc(po.project_name || po.project || '')}</td>
                     <td class="p-3">${esc(po.po_date)}</td>
                     <td class="p-3">${esc(po.supplier_name)}</td>
                     <td class="p-3">${esc(po.supplier_manager)}</td>
@@ -564,7 +567,7 @@
                     <input type="hidden" id="dom_po_id" value="${attr(d.id)}">
                     <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">국내용 발주서</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">웹 발주서 링크 하이웍스 발송</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
-                        <div class="grid md:grid-cols-4 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">발주번호</label><input id="dom_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">발주일자</label><input id="dom_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">작성자</label><input id="dom_writer" class="input-box" value="${attr(d.writer)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">납기 요청일</label><input id="dom_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
+                        <div class="grid md:grid-cols-5 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">발주번호</label><input id="dom_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">발주일자</label><input id="dom_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">프로젝트명</label><input id="dom_project_name" class="input-box" value="${attr(d.project_name || d.project || '')}" placeholder="예: 코스텍 조명세트"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">작성자</label><input id="dom_writer" class="input-box" value="${attr(d.writer)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">납기 요청일</label><input id="dom_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
                             <div class="border rounded-xl p-4"><h3 class="font-black text-slate-800 mb-4">발주처</h3><div class="grid gap-3"><input id="dom_buyer_name" class="input-box" value="${attr(d.buyer_name)}" placeholder="회사명"><input id="dom_buyer_biz" class="input-box" value="${attr(d.buyer_biz)}" placeholder="사업자번호"><input id="dom_buyer_addr" class="input-box" value="${attr(d.buyer_addr)}" placeholder="주소"><input id="dom_buyer_tel" class="input-box" value="${attr(d.buyer_tel)}" placeholder="연락처"><input id="dom_buyer_email" class="input-box" value="${attr(d.buyer_email)}" placeholder="이메일"></div></div>
                             <div class="border rounded-xl p-4"><h3 class="font-black text-slate-800 mb-4">공급처 / 수신자</h3><div class="grid gap-3"><div class="relative"><input id="dom_supplier_name" class="input-box" value="${attr(d.supplier_name)}" placeholder="회사명 검색 후 선택" autocomplete="off" oninput="po2_showPartnerSuggestions('domestic')" onfocus="po2_showPartnerSuggestions('domestic')"><div id="dom_partner_suggestions" class="hidden absolute z-50 left-0 right-0 bg-white border rounded-xl shadow-lg max-h-60 overflow-y-auto mt-1"></div></div><input id="dom_supplier_biz" class="input-box" value="${attr(d.supplier_biz)}" placeholder="사업자번호"><input id="dom_supplier_manager" class="input-box" value="${attr(d.supplier_manager)}" placeholder="담당자명"><input id="dom_supplier_tel" class="input-box" value="${attr(d.supplier_tel)}" placeholder="연락처"><input id="dom_supplier_email" class="input-box" value="${attr(d.supplier_email)}" placeholder="담당자 이메일"><input id="dom_supplier_addr" class="input-box" value="${attr(d.supplier_addr)}" placeholder="공급처 주소"><input id="dom_delivery_place" class="input-box" value="${attr(d.delivery_place)}" placeholder="납품장소"><p class="text-xs text-slate-500">회사명을 검색/선택하면 거래처 정보가 자동 입력됩니다.</p></div></div>
@@ -589,7 +592,7 @@
                     <input type="hidden" id="exp_po_id" value="${attr(d.id)}">
                     <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">해외용 Purchase Order</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send Web PO Link</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
-                        <div class="grid md:grid-cols-5 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">PO No.</label><input id="exp_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Date</label><input id="exp_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Currency</label><select id="exp_currency" class="input-box" onchange="po2_calc('overseas')">${['USD','EUR','JPY','CNY','KRW'].map(c => `<option ${c === (d.currency || 'USD') ? 'selected' : ''}>${c}</option>`).join('')}</select></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Incoterms</label><input id="exp_incoterms" class="input-box" value="${attr(d.incoterms)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Delivery Request</label><input id="exp_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
+                        <div class="grid md:grid-cols-6 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">PO No.</label><input id="exp_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Date</label><input id="exp_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Project</label><input id="exp_project_name" class="input-box" value="${attr(d.project_name || d.project || '')}" placeholder="Project name"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Currency</label><select id="exp_currency" class="input-box" onchange="po2_calc('overseas')">${['USD','EUR','JPY','CNY','KRW'].map(c => `<option ${c === (d.currency || 'USD') ? 'selected' : ''}>${c}</option>`).join('')}</select></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Incoterms</label><input id="exp_incoterms" class="input-box" value="${attr(d.incoterms)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Delivery Request</label><input id="exp_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
                             <div class="border rounded-xl p-4"><h3 class="font-black text-slate-800 mb-4">Buyer</h3><div class="grid gap-3"><input id="exp_buyer_name" class="input-box" value="${attr(d.buyer_name)}" placeholder="Buyer"><input id="exp_buyer_addr" class="input-box" value="${attr(d.buyer_addr)}" placeholder="Address"><input id="exp_buyer_tel" class="input-box" value="${attr(d.buyer_tel)}" placeholder="Tel"><input id="exp_buyer_email" class="input-box" value="${attr(d.buyer_email)}" placeholder="Email"></div></div>
                             <div class="border rounded-xl p-4"><h3 class="font-black text-slate-800 mb-4">Supplier / Contact</h3><div class="grid gap-3"><div class="relative"><input id="exp_supplier_name" class="input-box" value="${attr(d.supplier_name)}" placeholder="Supplier company search" autocomplete="off" oninput="po2_showPartnerSuggestions('overseas')" onfocus="po2_showPartnerSuggestions('overseas')"><div id="exp_partner_suggestions" class="hidden absolute z-50 left-0 right-0 bg-white border rounded-xl shadow-lg max-h-60 overflow-y-auto mt-1"></div></div><input id="exp_supplier_biz" class="input-box" value="${attr(d.supplier_biz)}" placeholder="Business No. / VAT No."><input id="exp_supplier_manager" class="input-box" value="${attr(d.supplier_manager)}" placeholder="Contact Person"><input id="exp_supplier_tel" class="input-box" value="${attr(d.supplier_tel)}" placeholder="Tel"><input id="exp_supplier_email" class="input-box" value="${attr(d.supplier_email)}" placeholder="Contact Email"><input id="exp_supplier_addr" class="input-box" value="${attr(d.supplier_addr)}" placeholder="Supplier Address"><input id="exp_destination" class="input-box" value="${attr(d.destination)}" placeholder="Destination"><p class="text-xs text-slate-500">회사명을 검색/선택하면 거래처 정보가 자동 입력됩니다.</p></div></div>
@@ -624,8 +627,8 @@
         }
         function collect(type){
             const it = items(type); const subtotal = it.reduce((s,x)=>s+x.amount,0); const now = new Date().toISOString();
-            if (type === 'domestic') { const vat=Math.round(subtotal*0.1); return {id:val('dom_po_id')||makeId(), type, po_no:val('dom_po_no'), po_date:val('dom_po_date'), writer:val('dom_writer'), delivery_date:val('dom_delivery_date'), buyer_name:val('dom_buyer_name'), buyer_biz:val('dom_buyer_biz'), buyer_addr:val('dom_buyer_addr'), buyer_tel:val('dom_buyer_tel'), buyer_email:val('dom_buyer_email'), supplier_name:val('dom_supplier_name'), supplier_biz:val('dom_supplier_biz'), supplier_manager:val('dom_supplier_manager'), supplier_tel:val('dom_supplier_tel'), supplier_email:val('dom_supplier_email'), supplier_addr:val('dom_supplier_addr'), delivery_place:val('dom_delivery_place'), note:val('dom_note'), currency:'KRW', subtotal, vat, total:subtotal+vat, items:it, updated_at:now}; }
-            return {id:val('exp_po_id')||makeId(), type, po_no:val('exp_po_no'), po_date:val('exp_po_date'), delivery_date:val('exp_delivery_date'), currency:val('exp_currency')||'USD', incoterms:val('exp_incoterms'), buyer_name:val('exp_buyer_name'), buyer_addr:val('exp_buyer_addr'), buyer_tel:val('exp_buyer_tel'), buyer_email:val('exp_buyer_email'), supplier_name:val('exp_supplier_name'), supplier_biz:val('exp_supplier_biz'), supplier_manager:val('exp_supplier_manager'), supplier_tel:val('exp_supplier_tel'), supplier_email:val('exp_supplier_email'), supplier_addr:val('exp_supplier_addr'), destination:val('exp_destination'), payment_terms:val('exp_payment_terms'), note:val('exp_note'), subtotal, vat:0, total:subtotal, items:it, updated_at:now};
+            if (type === 'domestic') { const vat=Math.round(subtotal*0.1); return {id:val('dom_po_id')||makeId(), type, po_no:val('dom_po_no'), po_date:val('dom_po_date'), project_name:val('dom_project_name'), writer:val('dom_writer'), delivery_date:val('dom_delivery_date'), buyer_name:val('dom_buyer_name'), buyer_biz:val('dom_buyer_biz'), buyer_addr:val('dom_buyer_addr'), buyer_tel:val('dom_buyer_tel'), buyer_email:val('dom_buyer_email'), supplier_name:val('dom_supplier_name'), supplier_biz:val('dom_supplier_biz'), supplier_manager:val('dom_supplier_manager'), supplier_tel:val('dom_supplier_tel'), supplier_email:val('dom_supplier_email'), supplier_addr:val('dom_supplier_addr'), delivery_place:val('dom_delivery_place'), note:val('dom_note'), currency:'KRW', subtotal, vat, total:subtotal+vat, items:it, updated_at:now}; }
+            return {id:val('exp_po_id')||makeId(), type, po_no:val('exp_po_no'), po_date:val('exp_po_date'), project_name:val('exp_project_name'), delivery_date:val('exp_delivery_date'), currency:val('exp_currency')||'USD', incoterms:val('exp_incoterms'), buyer_name:val('exp_buyer_name'), buyer_addr:val('exp_buyer_addr'), buyer_tel:val('exp_buyer_tel'), buyer_email:val('exp_buyer_email'), supplier_name:val('exp_supplier_name'), supplier_biz:val('exp_supplier_biz'), supplier_manager:val('exp_supplier_manager'), supplier_tel:val('exp_supplier_tel'), supplier_email:val('exp_supplier_email'), supplier_addr:val('exp_supplier_addr'), destination:val('exp_destination'), payment_terms:val('exp_payment_terms'), note:val('exp_note'), subtotal, vat:0, total:subtotal, items:it, updated_at:now};
         }
         window.po2_saveCurrent = function(type, status='저장', silent=false){ const data=collect(type); data.status=status; upsertHistory(data); if (!silent) alert('발주서를 저장했습니다.'); return data; };
         window.po2_saveAs = function(type){
@@ -2046,11 +2049,285 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'CLOUD-HISTORY-v1';
+        mark.textContent = 'PROJECT-CLOUD-v1';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
 });
+</script>
+
+
+<script id="project-po-summary-module-v1">
+(function(){
+  const PROJECT_VERSION = "PROJECT-CLOUD-v1";
+
+  function p_el(id){ return document.getElementById(id); }
+  function p_num(v){ return Number(v || 0).toLocaleString("ko-KR"); }
+  function p_esc(v){ return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
+
+  function p_client(){
+    try { if(window.supabaseClient) return window.supabaseClient; } catch(e) {}
+    try { if(window.db) return window.db; } catch(e) {}
+    try { if(window.client) return window.client; } catch(e) {}
+    try { if(typeof supabaseClient !== "undefined") return supabaseClient; } catch(e) {}
+    try { if(typeof db !== "undefined") return db; } catch(e) {}
+    try { if(typeof client !== "undefined") return client; } catch(e) {}
+    return null;
+  }
+
+  async function p_loadOrders(){
+    const client = p_client();
+    if(!client || !client.from) {
+      alert("Supabase 연결을 찾지 못했습니다.");
+      return [];
+    }
+
+    const { data, error } = await client
+      .from("erp_purchase_orders")
+      .select("*")
+      .order("po_date", { ascending:false })
+      .limit(1000);
+
+    if(error) {
+      console.error(error);
+      alert("프로젝트 발주 이력을 불러오지 못했습니다.\\n" + (error.message || error));
+      return [];
+    }
+
+    return (data || []).map(row => {
+      const po = row.po_data || {};
+      return Object.assign({}, po, {
+        id: row.id,
+        po_no: row.po_no || po.po_no,
+        type: row.po_type || po.type,
+        po_date: row.po_date || po.po_date,
+        supplier_name: row.supplier_name || po.supplier_name,
+        supplier_email: row.supplier_email || po.supplier_email,
+        project_name: row.project_name || po.project_name || po.project || "",
+        status: row.status || po.status,
+        total: Number(row.total || po.total || 0),
+        public_url: row.public_url || po.public_url,
+        updated_at: row.updated_at || po.updated_at
+      });
+    });
+  }
+
+  function p_buildSummary(orders){
+    const map = new Map();
+    orders.forEach(po => {
+      const project = (po.project_name || po.project || "").trim();
+      if(!project) return;
+      if(!map.has(project)) {
+        map.set(project, {
+          project_name: project,
+          po_count: 0,
+          item_count: 0,
+          total_amount: 0,
+          first_po_date: "",
+          last_po_date: "",
+          orders: []
+        });
+      }
+      const s = map.get(project);
+      s.po_count += 1;
+      s.orders.push(po);
+      s.total_amount += Number(po.total || 0);
+      const itemCount = (po.items || []).filter(i => i && (i.name || i.spec)).length;
+      s.item_count += itemCount;
+      if(!s.first_po_date || String(po.po_date || "") < s.first_po_date) s.first_po_date = po.po_date || "";
+      if(!s.last_po_date || String(po.po_date || "") > s.last_po_date) s.last_po_date = po.po_date || "";
+    });
+    return Array.from(map.values()).sort((a,b) => String(b.last_po_date).localeCompare(String(a.last_po_date)));
+  }
+
+  function p_itemsForProject(orders, project){
+    const rows = [];
+    orders.filter(po => (po.project_name || po.project || "").trim() === project).forEach(po => {
+      (po.items || []).forEach(item => {
+        if(!item || (!item.name && !item.spec)) return;
+        rows.push({
+          po_id: po.id,
+          po_no: po.po_no,
+          po_date: po.po_date,
+          type: po.type,
+          supplier_name: po.supplier_name,
+          item_name: item.name || "",
+          item_spec: item.spec || "",
+          qty: Number(item.qty || 0),
+          price: Number(item.price || 0),
+          amount: Number(item.amount || 0),
+          currency: po.currency || "KRW",
+          status: po.status || ""
+        });
+      });
+    });
+    return rows.sort((a,b) => String(b.po_date).localeCompare(String(a.po_date)));
+  }
+
+  window.project2_open = async function(){
+    const search = p_el("searchContainer");
+    const content = p_el("contentArea");
+    if(search) search.innerHTML = "";
+    if(!content) return;
+
+    content.innerHTML = `
+      <div class="max-w-7xl mx-auto">
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+          <div>
+            <h1 class="text-3xl font-black text-slate-800 border-l-8 border-cyan-500 pl-4">프로젝트 관리</h1>
+            <p class="text-slate-500 mt-2">프로젝트명으로 저장된 발주 품목과 비용을 한 번에 확인합니다.</p>
+          </div>
+          <button type="button" onclick="project2_open()" class="px-5 py-3 bg-slate-100 rounded-lg font-bold hover:bg-slate-200">새로고침</button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-6 mb-6">
+          <div class="grid md:grid-cols-4 gap-4 items-end">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-slate-600 mb-2">프로젝트 검색</label>
+              <input id="project2_keyword" class="input-box" placeholder="프로젝트명 입력" oninput="project2_renderSummary()">
+            </div>
+            <div class="text-sm text-slate-500 md:col-span-2">
+              발주서 작성 화면의 <b>프로젝트명</b>에 같은 이름을 입력하면 이 화면에서 자동 집계됩니다.
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow overflow-hidden mb-6">
+          <div class="p-5 border-b flex justify-between items-center">
+            <h2 class="text-xl font-black">프로젝트별 발주 합계</h2>
+            <span id="project2_count" class="text-sm text-slate-500"></span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-100">
+                <tr>
+                  <th class="p-3 text-left">프로젝트명</th>
+                  <th class="p-3 text-right">발주건수</th>
+                  <th class="p-3 text-right">품목수</th>
+                  <th class="p-3 text-right">총 발주금액</th>
+                  <th class="p-3 text-left">최초 발주일</th>
+                  <th class="p-3 text-left">최근 발주일</th>
+                  <th class="p-3 text-center">상세</th>
+                </tr>
+              </thead>
+              <tbody id="project2_summary_body">
+                <tr><td colspan="7" class="p-8 text-center text-slate-500">불러오는 중입니다...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="project2_detail" class="bg-white rounded-2xl shadow overflow-hidden hidden"></div>
+      </div>`;
+
+    window.__project2_orders = await p_loadOrders();
+    project2_renderSummary();
+  };
+
+  window.project2_renderSummary = function(){
+    const body = p_el("project2_summary_body");
+    if(!body) return;
+
+    const keyword = (p_el("project2_keyword")?.value || "").trim().toLowerCase();
+    const orders = window.__project2_orders || [];
+    let summary = p_buildSummary(orders);
+    if(keyword) summary = summary.filter(x => x.project_name.toLowerCase().includes(keyword));
+
+    const count = p_el("project2_count");
+    if(count) count.textContent = `총 ${summary.length}개 프로젝트`;
+
+    if(!summary.length) {
+      body.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">프로젝트명이 입력된 발주서가 없습니다.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = summary.map(s => `
+      <tr class="border-t hover:bg-slate-50">
+        <td class="p-3 font-bold">${p_esc(s.project_name)}</td>
+        <td class="p-3 text-right">${p_num(s.po_count)}건</td>
+        <td class="p-3 text-right">${p_num(s.item_count)}개</td>
+        <td class="p-3 text-right font-black text-blue-700">₩ ${p_num(s.total_amount)}</td>
+        <td class="p-3">${p_esc(s.first_po_date)}</td>
+        <td class="p-3">${p_esc(s.last_po_date)}</td>
+        <td class="p-3 text-center">
+          <button type="button" onclick="project2_showDetail('${p_esc(s.project_name)}')" class="px-3 py-1 bg-slate-800 text-white rounded font-bold text-xs">보기</button>
+        </td>
+      </tr>
+    `).join("");
+  };
+
+  window.project2_showDetail = function(project){
+    const box = p_el("project2_detail");
+    if(!box) return;
+
+    const rows = p_itemsForProject(window.__project2_orders || [], project);
+    const total = rows.reduce((s,x) => s + Number(x.amount || 0), 0);
+
+    box.classList.remove("hidden");
+    box.innerHTML = `
+      <div class="p-5 border-b flex flex-wrap justify-between items-center gap-3">
+        <div>
+          <h2 class="text-xl font-black">${p_esc(project)} 발주 상세</h2>
+          <p class="text-sm text-slate-500 mt-1">발주 품목 ${p_num(rows.length)}개 / 합계 ₩ ${p_num(total)}</p>
+        </div>
+        <button type="button" onclick="document.getElementById('project2_detail').classList.add('hidden')" class="px-4 py-2 bg-slate-100 rounded-lg font-bold">닫기</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-100">
+            <tr>
+              <th class="p-3 text-left">발주번호</th>
+              <th class="p-3 text-left">발주일</th>
+              <th class="p-3 text-left">공급처</th>
+              <th class="p-3 text-left">품목</th>
+              <th class="p-3 text-left">규격</th>
+              <th class="p-3 text-right">수량</th>
+              <th class="p-3 text-right">단가</th>
+              <th class="p-3 text-right">금액</th>
+              <th class="p-3 text-left">상태</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr class="border-t hover:bg-slate-50">
+                <td class="p-3 font-bold">${p_esc(r.po_no)}</td>
+                <td class="p-3">${p_esc(r.po_date)}</td>
+                <td class="p-3">${p_esc(r.supplier_name)}</td>
+                <td class="p-3">${p_esc(r.item_name)}</td>
+                <td class="p-3">${p_esc(r.item_spec)}</td>
+                <td class="p-3 text-right">${p_num(r.qty)}</td>
+                <td class="p-3 text-right">${p_num(r.price)}</td>
+                <td class="p-3 text-right font-bold">${r.currency && r.currency !== "KRW" ? p_esc(r.currency) + " " : "₩ "}${p_num(r.amount)}</td>
+                <td class="p-3">${p_esc(r.status)}</td>
+              </tr>
+            `).join("") || `<tr><td colspan="9" class="p-8 text-center text-slate-500">발주 품목이 없습니다.</td></tr>`}
+          </tbody>
+        </table>
+      </div>`;
+    box.scrollIntoView({ behavior:"smooth", block:"start" });
+  };
+
+  function installProjectSwitch(){
+    if(window.__project2SwitchInstalled || typeof window.switchTab !== "function") return;
+    const original = window.switchTab;
+    window.switchTab = function(tab){
+      if(tab === "projects"){
+        project2_open();
+        return;
+      }
+      return original.apply(this, arguments);
+    };
+    window.__project2SwitchInstalled = true;
+  }
+
+  installProjectSwitch();
+  let tries = 0;
+  const timer = setInterval(() => {
+    installProjectSwitch();
+    tries++;
+    if(window.__project2SwitchInstalled || tries > 20) clearInterval(timer);
+  }, 300);
+})();
 </script>
 
 </body>
