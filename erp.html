@@ -421,6 +421,11 @@
             if(hidden && id) hidden.value = id;
         }
 
+        function po2_setOriginalPoNo(type, poNo){
+            const hidden = el(type === 'domestic' ? 'dom_original_po_no' : 'exp_original_po_no');
+            if(hidden) hidden.value = poNo || '';
+        }
+
         function po2_refreshProjectCache(data){
             try{
                 if(!Array.isArray(window.__project2_orders) || !data) return;
@@ -487,6 +492,7 @@
                             data.po_no = await po2_nextPoNoFromCloud(data.type, client);
                             const noField = el(data.type === 'domestic' ? 'dom_po_no' : 'exp_po_no');
                             if(noField) noField.value = data.po_no;
+                            po2_setOriginalPoNo(data.type, data.po_no);
                         } else {
                             alert('이미 다른 발주서에서 사용 중인 발주번호입니다.\n중복되지 않는 발주번호로 변경한 뒤 다시 저장해 주세요.\n\n중복 발주번호: ' + data.po_no);
                             return;
@@ -526,6 +532,7 @@
                     list[idx] = Object.assign({}, list[idx], data);
                     saveHistory(list.slice(0,500));
                 }
+                po2_setOriginalPoNo(data.type, data.po_no);
                 po2_refreshProjectCache(data);
             }catch(e){
                 console.error('발주서 Supabase 저장 실패:', e);
@@ -605,7 +612,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">PROJECT-CLOUD-v5-UPDATE-ID</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">PROJECT-CLOUD-v6-PO-NO-NEW</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -709,7 +716,7 @@
                 const content = el('contentArea'); if (!content) { alert('contentArea 영역을 찾지 못했습니다.'); return; }
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
-                    <input type="hidden" id="dom_po_id" value="${attr(d.id)}">
+                    <input type="hidden" id="dom_po_id" value="${attr(d.id)}"><input type="hidden" id="dom_original_po_no" value="${attr(d.po_no)}">
                     <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">국내용 발주서</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">웹 발주서 링크 하이웍스 발송</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-5 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">발주번호</label><input id="dom_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">발주일자</label><input id="dom_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">프로젝트명</label><input id="dom_project_name" class="input-box" value="${attr(d.project_name || d.project || '')}" placeholder="예: 코스텍 조명세트"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">작성자</label><input id="dom_writer" class="input-box" value="${attr(d.writer)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">납기 요청일</label><input id="dom_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
@@ -734,7 +741,7 @@
                 const content = el('contentArea'); if (!content) { alert('contentArea 영역을 찾지 못했습니다.'); return; }
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
-                    <input type="hidden" id="exp_po_id" value="${attr(d.id)}">
+                    <input type="hidden" id="exp_po_id" value="${attr(d.id)}"><input type="hidden" id="exp_original_po_no" value="${attr(d.po_no)}">
                     <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div><button type="button" onclick="po2_openMenu()" class="inline-flex items-center px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xl font-black rounded-xl shadow-sm mb-4">← 발주서 선택/검색으로 돌아가기</button><h1 class="text-3xl font-black text-slate-800">해외용 Purchase Order</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send Web PO Link</button></div></div>
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-6 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">PO No.</label><input id="exp_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Date</label><input id="exp_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Project</label><input id="exp_project_name" class="input-box" value="${attr(d.project_name || d.project || '')}" placeholder="Project name"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Currency</label><select id="exp_currency" class="input-box" onchange="po2_calc('overseas')">${['USD','EUR','JPY','CNY','KRW'].map(c => `<option ${c === (d.currency || 'USD') ? 'selected' : ''}>${c}</option>`).join('')}</select></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Incoterms</label><input id="exp_incoterms" class="input-box" value="${attr(d.incoterms)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Delivery Request</label><input id="exp_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
@@ -777,14 +784,33 @@
         }
         window.po2_saveCurrent = function(type, status='저장', silent=false){
             const idBeforeSave = val(type === 'domestic' ? 'dom_po_id' : 'exp_po_id');
+            const originalNo = val(type === 'domestic' ? 'dom_original_po_no' : 'exp_original_po_no');
             let data = collect(type);
-            data.__is_new_record = !idBeforeSave;
-            data = po2_ensureUniqueNoForNew(type, data, !idBeforeSave);
-            data.status = status;
+
+            const poNoChanged = !!idBeforeSave && !!originalNo && String(data.po_no || '').trim() !== String(originalNo || '').trim();
+
+            // 기존 발주서를 열어서 발주번호를 변경하면 기존 이력을 덮어쓰지 않고 새 발주서 이력으로 추가합니다.
+            // 발주번호가 그대로일 때만 같은 행의 상태/품목/금액을 업데이트합니다.
+            if(poNoChanged){
+                data.id = makeId();
+                data.__is_new_record = true;
+                data.public_url = '';
+                data.status = (status === '웹링크발송준비' || status === '인쇄/PDF') ? status : '저장';
+            } else {
+                data.__is_new_record = !idBeforeSave;
+                data.status = status;
+            }
+
+            data = po2_ensureUniqueNoForNew(type, data, data.__is_new_record);
             data.updated_at = new Date().toISOString();
             po2_setCurrentId(type, data.id);
             upsertHistory(data);
-            if (!silent) alert('발주서를 저장했습니다.\n기존 발주서를 열어 발주번호만 바꾼 경우에도 같은 이력으로 업데이트됩니다.');
+
+            if (!silent) {
+                alert(poNoChanged
+                    ? '발주번호가 변경되어 새 발주서 이력으로 추가 저장했습니다.\n기존 발주서는 그대로 유지됩니다.'
+                    : '발주서를 저장했습니다.\n발주번호가 그대로이면 같은 이력이 업데이트됩니다.');
+            }
             return data;
         };
         window.po2_saveAs = function(type){
@@ -805,6 +831,7 @@
             const noField = el(type === 'domestic' ? 'dom_po_no' : 'exp_po_no');
             if (idField) idField.value = data.id;
             if (noField) noField.value = data.po_no;
+            po2_setOriginalPoNo(type, data.po_no);
             alert(type === 'domestic' ? '다른 이름으로 저장했습니다.\n새 발주서로 프로젝트 집계에 반영됩니다.' : 'Saved as a new purchase order and updated project summary.');
             return data;
         };
@@ -2210,7 +2237,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'PROJECT-CLOUD-v5-UPDATE-ID';
+        mark.textContent = 'PROJECT-CLOUD-v6-PO-NO-NEW';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
@@ -2220,7 +2247,7 @@ window.addEventListener('load', function(){
 
 <script id="project-po-summary-module-v1">
 (function(){
-  const PROJECT_VERSION = "PROJECT-CLOUD-v5-UPDATE-ID";
+  const PROJECT_VERSION = "PROJECT-CLOUD-v6-PO-NO-NEW";
 
   function p_el(id){ return document.getElementById(id); }
   function p_num(v){ return Number(v || 0).toLocaleString("ko-KR"); }
@@ -2336,7 +2363,7 @@ window.addEventListener('load', function(){
         <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
           <div>
             <h1 class="text-3xl font-black text-slate-800 border-l-8 border-cyan-500 pl-4">프로젝트 관리</h1>
-            <p class="text-slate-500 mt-2">프로젝트명으로 저장된 발주 품목과 비용을 한 번에 확인합니다. 같은 품목이 여러 발주서에 있어도 발주번호별로 따로 집계됩니다. 새 발주서는 기존 번호를 덮어쓰지 않도록 자동으로 다음 번호를 발급합니다.</p>
+            <p class="text-slate-500 mt-2">프로젝트명으로 저장된 발주 품목과 비용을 한 번에 확인합니다. 같은 품목이 여러 발주서에 있어도 발주번호별로 따로 집계됩니다. 새 발주서는 기존 번호를 덮어쓰지 않도록 자동으로 다음 번호를 발급합니다. 기존 발주서를 열어 발주번호를 바꾸고 저장하면 새 이력으로 추가됩니다.</p>
           </div>
           <button type="button" onclick="project2_open()" class="px-5 py-3 bg-slate-100 rounded-lg font-bold hover:bg-slate-200">새로고침</button>
         </div>
