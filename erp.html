@@ -88,6 +88,9 @@
                 <button onclick="userAdmin_open(this)" class="nav-btn w-full text-left px-6 py-3 hover:bg-slate-800 hover:text-white flex items-center gap-3">
                     <i class="fa-solid fa-users-gear w-5"></i> 사용자 관리
                 </button>
+                <button onclick="certAdmin_open(this)" class="nav-btn w-full text-left px-6 py-3 hover:bg-slate-800 hover:text-white flex items-center gap-3">
+                    <i class="fa-solid fa-file-signature w-5"></i> 증명서 관리
+                </button>
             </nav>
             
             <div class="p-6 border-t border-slate-800">
@@ -615,7 +618,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">USER-ADMIN-v1</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">CERT-ADMIN-v1</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -2240,7 +2243,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'USER-ADMIN-v1';
+        mark.textContent = 'CERT-ADMIN-v1';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
@@ -2250,7 +2253,7 @@ window.addEventListener('load', function(){
 
 <script id="project-po-summary-module-v1">
 (function(){
-  const PROJECT_VERSION = "USER-ADMIN-v1";
+  const PROJECT_VERSION = "CERT-ADMIN-v1";
 
   function p_el(id){ return document.getElementById(id); }
   function p_num(v){ return Number(v || 0).toLocaleString("ko-KR"); }
@@ -2524,7 +2527,7 @@ window.addEventListener('load', function(){
 
 <script id="erp-user-admin-module-v1">
 (function(){
-  const USER_ADMIN_VERSION = "USER-ADMIN-v1";
+  const USER_ADMIN_VERSION = "CERT-ADMIN-v1";
 
   function ua_el(id){ return document.getElementById(id); }
   function ua_val(id){ return (ua_el(id)?.value || "").trim(); }
@@ -2765,6 +2768,453 @@ window.addEventListener('load', function(){
     }catch(e){
       alert("내 비밀번호 변경 실패: " + (e.message || e));
     }
+  };
+})();
+</script>
+
+
+<script id="erp-certificate-admin-module-v1">
+(function(){
+  const CERT_VERSION = "CERT-ADMIN-v1";
+  const CERT_KEY = "kooky_employment_certificates_v1";
+  const STAMP_URI = "data:image/png;base64,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";
+
+  function c_el(id){ return document.getElementById(id); }
+  function c_val(id){ return (c_el(id)?.value || "").trim(); }
+  function c_set(id, v){ const x=c_el(id); if(x) x.value = v ?? ""; }
+  function c_esc(v){ return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
+  function c_attr(v){ return c_esc(v).replaceAll("'","&#39;"); }
+  function c_today(){ return new Date().toISOString().slice(0,10); }
+  function c_id(){ return "cert_" + Date.now() + "_" + Math.random().toString(36).slice(2,7); }
+
+  function c_dateKo(v){
+    if(!v) return "";
+    const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(!m) return String(v);
+    return `${m[1]}년 ${m[2]}월 ${m[3]}일`;
+  }
+
+  function c_period(start, end){
+    const s = c_dateKo(start);
+    const e = c_dateKo(end);
+    if(s && e) return s + "~" + e;
+    if(s) return s + "~현재";
+    return "";
+  }
+
+  function c_client(){
+    try { return getClient && getClient(); } catch(e) {}
+    try { if(window.supabaseClient) return window.supabaseClient; } catch(e) {}
+    try { if(window.db) return window.db; } catch(e) {}
+    try { if(window.client) return window.client; } catch(e) {}
+    return null;
+  }
+
+  function c_loadLocal(){
+    try {
+      const arr = JSON.parse(localStorage.getItem(CERT_KEY) || "[]");
+      return Array.isArray(arr) ? arr : [];
+    } catch(e) { return []; }
+  }
+
+  function c_saveLocal(arr){
+    localStorage.setItem(CERT_KEY, JSON.stringify((arr || []).slice(0,500)));
+  }
+
+  function c_nextNo(){
+    const year = new Date().getFullYear();
+    let max = 0;
+    c_loadLocal().forEach(x => {
+      const m = String(x.cert_no || "").match(new RegExp("^" + year + "-(\\d+)호$"));
+      if(m) max = Math.max(max, Number(m[1] || 0));
+    });
+    return year + "-" + String(max + 1) + "호";
+  }
+
+  function c_default(){
+    return {
+      id:"",
+      cert_no:c_nextNo(),
+      employee_name:"",
+      rrn:"",
+      address:"",
+      department:"",
+      position:"",
+      start_date:"",
+      end_date:c_today(),
+      purpose:"제출용",
+      issue_date:c_today(),
+      company_address:"경기도 화성시 송산면 화성로 316-42",
+      ceo_name:"전종욱",
+      company_name:"쿠키혼 레이저 주식회사",
+      memo:""
+    };
+  }
+
+  function c_collect(){
+    return {
+      id:c_val("cert_id") || c_id(),
+      cert_no:c_val("cert_no"),
+      employee_name:c_val("cert_employee_name"),
+      rrn:c_val("cert_rrn"),
+      address:c_val("cert_address"),
+      department:c_val("cert_department"),
+      position:c_val("cert_position"),
+      start_date:c_val("cert_start_date"),
+      end_date:c_val("cert_end_date"),
+      purpose:c_val("cert_purpose"),
+      issue_date:c_val("cert_issue_date"),
+      company_address:c_val("cert_company_address"),
+      ceo_name:c_val("cert_ceo_name"),
+      company_name:c_val("cert_company_name"),
+      memo:c_val("cert_memo"),
+      updated_at:new Date().toISOString()
+    };
+  }
+
+  function c_fill(d){
+    d = Object.assign(c_default(), d || {});
+    c_set("cert_id", d.id);
+    c_set("cert_no", d.cert_no);
+    c_set("cert_employee_name", d.employee_name);
+    c_set("cert_rrn", d.rrn);
+    c_set("cert_address", d.address);
+    c_set("cert_department", d.department);
+    c_set("cert_position", d.position);
+    c_set("cert_start_date", d.start_date);
+    c_set("cert_end_date", d.end_date);
+    c_set("cert_purpose", d.purpose);
+    c_set("cert_issue_date", d.issue_date);
+    c_set("cert_company_address", d.company_address);
+    c_set("cert_ceo_name", d.ceo_name);
+    c_set("cert_company_name", d.company_name);
+    c_set("cert_memo", d.memo);
+  }
+
+  function c_toDbRow(d){
+    return {
+      id:d.id,
+      cert_no:d.cert_no || "",
+      employee_name:d.employee_name || "",
+      rrn:d.rrn || "",
+      department:d.department || "",
+      position:d.position || "",
+      issue_date:d.issue_date || null,
+      purpose:d.purpose || "",
+      cert_data:d
+    };
+  }
+
+  function c_fromDbRow(row){
+    return row && row.cert_data ? Object.assign({}, row.cert_data, {
+      id: row.id,
+      cert_no: row.cert_no || row.cert_data.cert_no,
+      employee_name: row.employee_name || row.cert_data.employee_name,
+      rrn: row.rrn || row.cert_data.rrn,
+      department: row.department || row.cert_data.department,
+      position: row.position || row.cert_data.position,
+      issue_date: row.issue_date || row.cert_data.issue_date,
+      purpose: row.purpose || row.cert_data.purpose,
+      updated_at: row.updated_at || row.cert_data.updated_at
+    }) : row;
+  }
+
+  async function c_loadCloud(){
+    const client = c_client();
+    if(!client || !client.from) return c_loadLocal();
+    try {
+      const { data, error } = await client
+        .from("erp_employment_certificates")
+        .select("*")
+        .order("updated_at", { ascending:false })
+        .limit(500);
+      if(error) throw error;
+      const list = (data || []).map(c_fromDbRow).filter(Boolean);
+      c_saveLocal(list);
+      return list;
+    } catch(e) {
+      console.warn("재직증명서 Supabase 조회 실패, 로컬 이력 사용:", e);
+      return c_loadLocal();
+    }
+  }
+
+  async function c_saveCloud(d){
+    const list = c_loadLocal();
+    const idx = list.findIndex(x => x.id === d.id);
+    if(idx >= 0) list[idx] = Object.assign({}, list[idx], d);
+    else list.unshift(d);
+    c_saveLocal(list);
+
+    const client = c_client();
+    if(client && client.from){
+      try {
+        const { error } = await client
+          .from("erp_employment_certificates")
+          .upsert(c_toDbRow(d), { onConflict:"id" });
+        if(error) throw error;
+      } catch(e) {
+        console.error("재직증명서 Supabase 저장 실패:", e);
+        alert("Supabase 저장 실패. 이 PC에는 임시 저장되었습니다.\n" + (e.message || e));
+      }
+    }
+  }
+
+  async function c_deleteCloud(id){
+    const client = c_client();
+    if(client && client.from){
+      try {
+        const { error } = await client.from("erp_employment_certificates").delete().eq("id", id);
+        if(error) throw error;
+      } catch(e) {
+        console.warn("재직증명서 Supabase 삭제 실패:", e);
+      }
+    }
+    c_saveLocal(c_loadLocal().filter(x => x.id !== id));
+  }
+
+  window.certAdmin_open = async function(btn){
+    try { if(typeof activeNav === "function") activeNav(btn); } catch(e) {}
+    const search = c_el("searchContainer");
+    const content = c_el("contentArea");
+    if(search) search.innerHTML = "";
+    if(!content) return;
+
+    content.innerHTML = `
+      <div class="max-w-7xl mx-auto">
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+          <div>
+            <h1 class="text-3xl font-black text-slate-800 border-l-8 border-emerald-500 pl-4">증명서 관리</h1>
+            <p class="text-slate-500 mt-2">재직증명서를 발행하고 인쇄/PDF 저장합니다.</p>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <button type="button" onclick="certAdmin_new()" class="px-5 py-3 bg-slate-100 rounded-lg font-bold hover:bg-slate-200">새 증명서</button>
+            <button type="button" onclick="certAdmin_save()" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button>
+            <button type="button" onclick="certAdmin_print()" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button>
+          </div>
+        </div>
+
+        <div class="grid xl:grid-cols-3 gap-6">
+          <div class="xl:col-span-2 bg-white rounded-2xl shadow p-6">
+            <input type="hidden" id="cert_id">
+            <div class="grid md:grid-cols-3 gap-4 mb-6">
+              <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">발급번호</label>
+                <input id="cert_no" class="input-box" placeholder="예: 2026-1호">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">발급일</label>
+                <input id="cert_issue_date" type="date" class="input-box">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">용도</label>
+                <input id="cert_purpose" class="input-box" placeholder="제출용">
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">성명</label>
+                <input id="cert_employee_name" class="input-box" placeholder="성명">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">주민등록번호</label>
+                <input id="cert_rrn" class="input-box" placeholder="예: 781005-1******">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-bold text-slate-600 mb-2">현 주소</label>
+                <input id="cert_address" class="input-box" placeholder="현 주소">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">소속</label>
+                <input id="cert_department" class="input-box" placeholder="소속">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">직위</label>
+                <input id="cert_position" class="input-box" placeholder="직위">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">근무 시작일</label>
+                <input id="cert_start_date" type="date" class="input-box">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">근무 종료일 / 현재일</label>
+                <input id="cert_end_date" type="date" class="input-box">
+              </div>
+            </div>
+
+            <div class="border-t pt-5">
+              <h3 class="font-black text-slate-800 mb-3">회사 정보</h3>
+              <div class="grid md:grid-cols-3 gap-4">
+                <div class="md:col-span-3">
+                  <label class="block text-sm font-bold text-slate-600 mb-2">회사 주소</label>
+                  <input id="cert_company_address" class="input-box">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-slate-600 mb-2">대표자</label>
+                  <input id="cert_ceo_name" class="input-box">
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-bold text-slate-600 mb-2">회사명</label>
+                  <input id="cert_company_name" class="input-box">
+                </div>
+                <div class="md:col-span-3">
+                  <label class="block text-sm font-bold text-slate-600 mb-2">메모</label>
+                  <textarea id="cert_memo" class="input-box h-20" placeholder="내부 메모"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow overflow-hidden">
+            <div class="p-5 border-b">
+              <h2 class="text-xl font-black">발행 이력</h2>
+              <p class="text-sm text-slate-500 mt-1">저장된 재직증명서를 다시 열 수 있습니다.</p>
+              <input id="cert_keyword" oninput="certAdmin_renderList()" class="input-box mt-3" placeholder="성명 / 발급번호 검색">
+            </div>
+            <div class="max-h-[620px] overflow-y-auto">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-100 sticky top-0">
+                  <tr>
+                    <th class="p-3 text-left">발급번호</th>
+                    <th class="p-3 text-left">성명</th>
+                    <th class="p-3 text-left">발급일</th>
+                    <th class="p-3 text-center">작업</th>
+                  </tr>
+                </thead>
+                <tbody id="cert_history_body">
+                  <tr><td colspan="4" class="p-8 text-center text-slate-500">불러오는 중입니다...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    c_fill(c_default());
+    window.__certList = await c_loadCloud();
+    certAdmin_renderList();
+  };
+
+  window.certAdmin_new = function(){
+    c_fill(c_default());
+  };
+
+  window.certAdmin_save = async function(){
+    const d = c_collect();
+    if(!d.employee_name) { alert("성명을 입력해 주세요."); return; }
+    if(!d.cert_no) { alert("발급번호를 입력해 주세요."); return; }
+    await c_saveCloud(d);
+    c_fill(d);
+    window.__certList = await c_loadCloud();
+    certAdmin_renderList();
+    alert("재직증명서를 저장했습니다.");
+  };
+
+  window.certAdmin_renderList = function(){
+    const body = c_el("cert_history_body");
+    if(!body) return;
+    const key = c_val("cert_keyword").toLowerCase();
+    let list = window.__certList || c_loadLocal();
+    if(key){
+      list = list.filter(x => [x.cert_no, x.employee_name, x.purpose].join(" ").toLowerCase().includes(key));
+    }
+    if(!list.length){
+      body.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500">저장된 이력이 없습니다.</td></tr>`;
+      return;
+    }
+    body.innerHTML = list.map(d => `
+      <tr class="border-t hover:bg-slate-50">
+        <td class="p-3 font-bold">${c_esc(d.cert_no)}</td>
+        <td class="p-3">${c_esc(d.employee_name)}</td>
+        <td class="p-3">${c_esc(d.issue_date)}</td>
+        <td class="p-3 text-center whitespace-nowrap">
+          <button type="button" onclick="certAdmin_openSaved('${c_attr(d.id)}')" class="px-3 py-1 bg-slate-800 text-white rounded text-xs font-bold">열기</button>
+          <button type="button" onclick="certAdmin_delete('${c_attr(d.id)}')" class="px-3 py-1 bg-red-50 text-red-600 rounded text-xs font-bold">삭제</button>
+        </td>
+      </tr>`).join("");
+  };
+
+  window.certAdmin_openSaved = function(id){
+    const d = (window.__certList || c_loadLocal()).find(x => x.id === id);
+    if(!d) { alert("이력을 찾지 못했습니다."); return; }
+    c_fill(d);
+  };
+
+  window.certAdmin_delete = async function(id){
+    if(!confirm("이 재직증명서 이력을 삭제할까요?")) return;
+    await c_deleteCloud(id);
+    window.__certList = await c_loadCloud();
+    certAdmin_renderList();
+  };
+
+  function c_printHtml(d){
+    const stamp = STAMP_URI ? `<img src="${STAMP_URI}" class="cert-stamp">` : "";
+    return `
+      <style>
+        @page { size:A4 portrait; margin:0; }
+        body { margin:0; background:white; font-family:Arial, 'Malgun Gothic', sans-serif; color:#111; }
+        .cert-page { width:210mm; min-height:297mm; box-sizing:border-box; padding:12mm 13mm; background:white; position:relative; }
+        .cert-border { border:2px solid #111; height:270mm; position:relative; box-sizing:border-box; }
+        .cert-no { position:absolute; left:0; top:-9mm; font-size:12px; }
+        .cert-title { height:45mm; display:flex; align-items:center; justify-content:center; font-size:25px; font-weight:900; letter-spacing:8px; text-decoration:underline; text-underline-offset:6px; }
+        .cert-table { width:100%; border-collapse:collapse; table-layout:fixed; border-top:2px solid #111; border-bottom:2px solid #111; font-size:13px; }
+        .cert-table th { width:52mm; border-right:2px solid #111; border-bottom:2px solid #111; height:13.5mm; text-align:center; font-weight:900; }
+        .cert-table td { border-bottom:2px solid #111; padding:0 3mm; font-weight:500; }
+        .cert-table tr:last-child th, .cert-table tr:last-child td { border-bottom:none; }
+        .cert-statement { text-align:center; font-size:17px; font-weight:900; margin-top:24mm; }
+        .cert-footer { position:absolute; left:0; right:0; bottom:23mm; text-align:center; font-size:13px; line-height:2.1; }
+        .cert-footer .date { margin-bottom:9mm; }
+        .cert-footer .ceo { letter-spacing:3px; }
+        .cert-footer .company { letter-spacing:1px; }
+        .cert-stamp { position:absolute; left:calc(50% + 58px); bottom:16mm; width:55px; height:55px; object-fit:contain; opacity:.62; }
+        @media print {
+          body * { visibility:hidden !important; }
+          #printContainer, #printContainer * { visibility:visible !important; }
+          #printContainer { position:absolute; left:0; top:0; width:100%; }
+        }
+      </style>
+      <div class="cert-page">
+        <div class="cert-border">
+          <div class="cert-no">발급번호 : ${c_esc(d.cert_no)}</div>
+          <div class="cert-title">재직증명서</div>
+          <table class="cert-table">
+            <tr><th>성 명</th><td>${c_esc(d.employee_name)}</td></tr>
+            <tr><th>주민등록번호</th><td>${c_esc(d.rrn)}</td></tr>
+            <tr><th>현 주 소</th><td>${c_esc(d.address)}</td></tr>
+            <tr><th>소 속</th><td>${c_esc(d.department)}</td></tr>
+            <tr><th>직 위</th><td>${c_esc(d.position)}</td></tr>
+            <tr><th>근무기간</th><td>${c_esc(c_period(d.start_date, d.end_date))}</td></tr>
+            <tr><th>용 도</th><td>${c_esc(d.purpose)}</td></tr>
+          </table>
+          <div class="cert-statement">위와 같이 증명합니다.</div>
+          <div class="cert-footer">
+            <div class="date">${c_esc(c_dateKo(d.issue_date))}</div>
+            <div>${c_esc(d.company_address)}</div>
+            <div class="ceo">대 표 이 사&nbsp;&nbsp;${c_esc(d.ceo_name)}</div>
+            <div class="company">${c_esc(d.company_name)}</div>
+          </div>
+          ${stamp}
+        </div>
+      </div>`;
+  }
+
+  window.certAdmin_print = async function(){
+    let d = c_collect();
+    if(!d.employee_name) { alert("성명을 입력해 주세요."); return; }
+    if(!d.cert_no) { alert("발급번호를 입력해 주세요."); return; }
+    await c_saveCloud(d);
+    c_fill(d);
+    window.__certList = await c_loadCloud();
+    certAdmin_renderList();
+
+    const pc = c_el("printContainer") || document.body.appendChild(document.createElement("div"));
+    pc.id = "printContainer";
+    pc.classList.remove("hidden");
+    pc.innerHTML = c_printHtml(d);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => { pc.classList.add("hidden"); pc.innerHTML = ""; }, 500);
+    }, 100);
   };
 })();
 </script>
