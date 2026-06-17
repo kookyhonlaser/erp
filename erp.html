@@ -477,14 +477,19 @@
 
                     if(findError) throw findError;
 
-                    // 새 발주서인데 같은 발주번호가 이미 있으면 기존 건을 덮어쓰지 않고 새 번호를 발급합니다.
-                    if(existing && existing.id && String(existing.id) !== String(data.id) && data.__is_new_record){
-                        data.po_no = await po2_nextPoNoFromCloud(data.type, client);
-                        const noField = el(data.type === 'domestic' ? 'dom_po_no' : 'exp_po_no');
-                        if(noField) noField.value = data.po_no;
-                    } else if(existing && existing.id){
-                        data.id = existing.id;
-                        po2_setCurrentId(data.type, data.id);
+                    // 중요:
+                    // 1) 예전 발주서를 열어서 발주번호만 바꾼 경우에는 hidden id가 있으므로 같은 이력을 업데이트해야 합니다.
+                    // 2) 새 발주서인데 같은 발주번호가 이미 있으면 기존 건을 덮어쓰지 않고 새 번호를 발급합니다.
+                    // 3) 기존 발주서를 다른 기존 발주번호로 바꾸면 충돌이므로 저장을 막습니다.
+                    if(existing && existing.id && String(existing.id) !== String(data.id)){
+                        if(data.__is_new_record){
+                            data.po_no = await po2_nextPoNoFromCloud(data.type, client);
+                            const noField = el(data.type === 'domestic' ? 'dom_po_no' : 'exp_po_no');
+                            if(noField) noField.value = data.po_no;
+                        } else {
+                            alert('이미 다른 발주서에서 사용 중인 발주번호입니다.\n중복되지 않는 발주번호로 변경한 뒤 다시 저장해 주세요.\n\n중복 발주번호: ' + data.po_no);
+                            return;
+                        }
                     }
                 }
 
@@ -575,7 +580,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">PROJECT-CLOUD-v3-AUTO-NO</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">PROJECT-CLOUD-v4-EDIT-NO</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -754,7 +759,7 @@
             data.updated_at = new Date().toISOString();
             po2_setCurrentId(type, data.id);
             upsertHistory(data);
-            if (!silent) alert('발주서를 저장했습니다.\n프로젝트 발주 집계도 같이 업데이트됩니다.');
+            if (!silent) alert('발주서를 저장했습니다.\n발주번호 변경과 프로젝트 발주 집계도 같이 업데이트됩니다.');
             return data;
         };
         window.po2_saveAs = function(type){
@@ -2180,7 +2185,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'PROJECT-CLOUD-v3-AUTO-NO';
+        mark.textContent = 'PROJECT-CLOUD-v4-EDIT-NO';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
@@ -2190,7 +2195,7 @@ window.addEventListener('load', function(){
 
 <script id="project-po-summary-module-v1">
 (function(){
-  const PROJECT_VERSION = "PROJECT-CLOUD-v3-AUTO-NO";
+  const PROJECT_VERSION = "PROJECT-CLOUD-v4-EDIT-NO";
 
   function p_el(id){ return document.getElementById(id); }
   function p_num(v){ return Number(v || 0).toLocaleString("ko-KR"); }
