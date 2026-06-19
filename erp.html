@@ -46,9 +46,6 @@
                 <button onclick="po2_openMenu(this)" class="nav-btn w-full text-left px-6 py-3 hover:bg-slate-800 hover:text-white flex items-center gap-3">
                     <i class="fa-solid fa-file-import w-5"></i> 발주 관리 (PO)
                 </button>
-                <button onclick="switchTab('purchases')" class="nav-btn w-full text-left px-6 py-3 hover:bg-slate-800 hover:text-white flex items-center gap-3">
-                    <i class="fa-solid fa-dolly w-5"></i> 이전 발주서 내역
-                </button>
                 <button onclick="switchTab('inventory')" class="nav-btn w-full text-left px-6 py-3 hover:bg-slate-800 hover:text-white flex items-center gap-3">
                     <i class="fa-solid fa-warehouse w-5"></i> 재고 관리 현황
                 </button>
@@ -695,7 +692,7 @@
                 <div class="max-w-7xl mx-auto">
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-8">
                         <div>
-                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">ECOUNT-PO-DATE-v1</span></h1>
+                            <h1 class="text-3xl font-black text-slate-800">발주서 관리 <span class="text-xs text-slate-400">ECOUNT-PO-DATE-v2-NO-SEPARATE</span></h1>
                             <p class="text-slate-500 mt-2">국내용 발주서와 해외용 Purchase Order를 작성하고 이전 발주서를 검색합니다.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
@@ -2497,7 +2494,7 @@ window.addEventListener('load', function(){
     if (!document.getElementById('hiworksPatchMark')) {
         const mark = document.createElement('div');
         mark.id = 'hiworksPatchMark';
-        mark.textContent = 'ECOUNT-PO-DATE-v1';
+        mark.textContent = 'ECOUNT-PO-DATE-v2-NO-SEPARATE';
         mark.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99999;background:#059669;color:white;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;opacity:.85';
         document.body.appendChild(mark);
     }
@@ -2507,7 +2504,7 @@ window.addEventListener('load', function(){
 
 <script id="project-po-summary-module-v1">
 (function(){
-  const PROJECT_VERSION = "ECOUNT-PO-DATE-v1";
+  const PROJECT_VERSION = "ECOUNT-PO-DATE-v2-NO-SEPARATE";
 
   function p_el(id){ return document.getElementById(id); }
   function p_num(v){ return Number(v || 0).toLocaleString("ko-KR"); }
@@ -2781,7 +2778,7 @@ window.addEventListener('load', function(){
 
 <script id="erp-user-admin-module-v1">
 (function(){
-  const USER_ADMIN_VERSION = "ECOUNT-PO-DATE-v1";
+  const USER_ADMIN_VERSION = "ECOUNT-PO-DATE-v2-NO-SEPARATE";
 
   function ua_el(id){ return document.getElementById(id); }
   function ua_val(id){ return (ua_el(id)?.value || "").trim(); }
@@ -3029,7 +3026,7 @@ window.addEventListener('load', function(){
 
 <script id="erp-certificate-admin-module-v1">
 (function(){
-  const CERT_VERSION = "ECOUNT-PO-DATE-v1";
+  const CERT_VERSION = "ECOUNT-PO-DATE-v2-NO-SEPARATE";
   const CERT_KEY = "kooky_employment_certificates_v1";
   const STAMP_URI = "data:image/png;base64,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";
 
@@ -3476,7 +3473,7 @@ window.addEventListener('load', function(){
 
 <script id="erp-home-clean-dashboard-v1">
 (function(){
-  const HOME_VERSION = "ECOUNT-PO-DATE-v1";
+  const HOME_VERSION = "ECOUNT-PO-DATE-v2-NO-SEPARATE";
 
   const HOME_ITEMS = [
     {
@@ -3506,13 +3503,6 @@ window.addEventListener('load', function(){
       icon:"fa-file-import",
       color:"indigo",
       action:"po2_openMenu(this)"
-    },
-    {
-      title:"이전 발주서 내역",
-      desc:"구매 및 입고 관련 자료를 확인합니다.",
-      icon:"fa-dolly",
-      color:"amber",
-      action:"switchTab('purchases')"
     },
     {
       title:"재고 관리 현황",
@@ -3614,7 +3604,7 @@ window.addEventListener('load', function(){
 
         <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm text-amber-800">
           <b>정리 기준</b><br>
-          홈화면에서 제외한 항목: 기장관리, 미팅일지, 메모장, 주문관리, 판매관리, 수금관리, 원가관리, 품목관리<br>
+          홈화면에서 제외한 항목: 기장관리, 미팅일지, 메모장, 주문관리, 판매관리, 수금관리, 원가관리, 품목관리, 이전 발주서 내역 단독 메뉴<br>
           왼쪽 세로 메뉴에서도 제외했습니다.
         </div>
       </div>`;
@@ -3652,270 +3642,6 @@ window.addEventListener('load', function(){
 })();
 </script>
 
-
-<script id="erp-ecount-purchase-history-module-v1">
-(function(){
-  const ECOUNT_VERSION = "ECOUNT-PO-DATE-v1";
-
-  function e_el(id){ return document.getElementById(id); }
-  function e_val(id){ return (e_el(id)?.value || "").trim(); }
-  function e_num(v){ return Number(v || 0).toLocaleString("ko-KR"); }
-  function e_esc(v){ return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
-
-  function e_client(){
-    try { return getClient && getClient(); } catch(e) {}
-    try { if(window.supabaseClient) return window.supabaseClient; } catch(e) {}
-    try { if(window.db) return window.db; } catch(e) {}
-    try { if(window.client) return window.client; } catch(e) {}
-    try { if(typeof supabaseClient !== "undefined") return supabaseClient; } catch(e) {}
-    try { if(typeof db !== "undefined") return db; } catch(e) {}
-    try { if(typeof client !== "undefined") return client; } catch(e) {}
-    return null;
-  }
-
-  async function e_loadRows(){
-    const client = e_client();
-    if(!client || !client.from){
-      alert("Supabase 연결을 찾지 못했습니다.");
-      return [];
-    }
-
-    let all = [];
-    let from = 0;
-    const pageSize = 1000;
-
-    while(true){
-      const { data, error } = await client
-        .from("erp_ecount_po_request_summary")
-        .select("*")
-        .order("request_date", { ascending:false })
-        .order("ecount_row_no", { ascending:true })
-        .range(from, from + pageSize - 1);
-
-      if(error){
-        console.error(error);
-        alert("이카운트 발주서 내역을 불러오지 못했습니다.\n" + (error.message || error));
-        return all;
-      }
-
-      all = all.concat(data || []);
-      if(!data || data.length < pageSize) break;
-      from += pageSize;
-      if(from > 20000) break;
-    }
-
-    return all;
-  }
-
-  function e_filterRows(rows){
-    const keyword = e_val("ecount_keyword").toLowerCase();
-    const status = e_val("ecount_status");
-    const year = e_val("ecount_year");
-
-    return (rows || []).filter(r => {
-      const text = [
-        r.request_no,
-        r.purchase_order_no,
-        r.supplier_name,
-        r.item_name,
-        r.delivery_date_raw,
-        r.rma,
-        r.close_status,
-        r.progress_status
-      ].join(" ").toLowerCase();
-
-      const okKeyword = !keyword || text.includes(keyword);
-      const okStatus = !status || status === "전체" || String(r.close_status || "") === status;
-      const okYear = !year || year === "전체" || String(r.request_date || "").startsWith(year + "-");
-
-      return okKeyword && okStatus && okYear;
-    });
-  }
-
-  function e_statusBadge(status){
-    const s = String(status || "");
-    if(s === "완료") return `<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">완료</span>`;
-    if(s === "진행중") return `<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">진행중</span>`;
-    if(s === "미확인") return `<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">미확인</span>`;
-    return `<span class="px-2 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold">${e_esc(s || "-")}</span>`;
-  }
-
-  window.ecountPurchases_open = async function(btn){
-    try { if(typeof activeNav === "function") activeNav(btn); } catch(e) {}
-
-    const search = e_el("searchContainer");
-    const content = e_el("contentArea");
-    if(search) search.innerHTML = "";
-    if(!content) return;
-
-    content.innerHTML = `
-      <div class="max-w-7xl mx-auto">
-        <div class="flex flex-wrap justify-between items-end gap-4 mb-6">
-          <div>
-            <h1 class="text-3xl font-black text-slate-800 border-l-8 border-amber-500 pl-4">이전 발주서 내역</h1>
-            <p class="text-slate-500 mt-2">이카운트 기존 발주서 내역을 조회합니다. ERP에서 새로 작성한 발주서는 발주 관리의 이전 발주서 검색에도 함께 표시됩니다.</p>
-          </div>
-          <button type="button" onclick="ecountPurchases_open()" class="px-5 py-3 bg-slate-100 rounded-lg font-bold hover:bg-slate-200">
-            <i class="fa-solid fa-rotate mr-1"></i> 새로고침
-          </button>
-        </div>
-
-        <div class="grid md:grid-cols-4 gap-4 mb-6" id="ecount_summary">
-          <div class="bg-white rounded-2xl shadow p-5">
-            <div class="text-sm text-slate-500">전체 이력</div>
-            <div class="text-2xl font-black mt-1">-</div>
-          </div>
-          <div class="bg-white rounded-2xl shadow p-5">
-            <div class="text-sm text-slate-500">총 금액</div>
-            <div class="text-2xl font-black mt-1">-</div>
-          </div>
-          <div class="bg-white rounded-2xl shadow p-5">
-            <div class="text-sm text-slate-500">거래처 수</div>
-            <div class="text-2xl font-black mt-1">-</div>
-          </div>
-          <div class="bg-white rounded-2xl shadow p-5">
-            <div class="text-sm text-slate-500">진행중/미확인</div>
-            <div class="text-2xl font-black mt-1">-</div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow p-5 mb-6">
-          <div class="grid md:grid-cols-4 gap-4 items-end">
-            <div class="md:col-span-2">
-              <label class="block text-sm font-bold text-slate-600 mb-2">검색</label>
-              <input id="ecount_keyword" class="input-box" placeholder="발주서번호 / 거래처 / 품목 / RMA 검색" oninput="ecountPurchases_render()">
-            </div>
-            <div>
-              <label class="block text-sm font-bold text-slate-600 mb-2">종결 여부</label>
-              <select id="ecount_status" class="input-box" onchange="ecountPurchases_render()">
-                <option>전체</option>
-                <option>진행중</option>
-                <option>완료</option>
-                <option>미확인</option>
-                <option>확인</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-bold text-slate-600 mb-2">연도</label>
-              <select id="ecount_year" class="input-box" onchange="ecountPurchases_render()">
-                <option>전체</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow overflow-hidden">
-          <div class="p-5 border-b flex flex-wrap justify-between items-center gap-3">
-            <div>
-              <h2 class="text-xl font-black">이카운트 발주서 내역</h2>
-              <p class="text-sm text-slate-500 mt-1">원본 파일: 발주서조회, 2010-05-20 ~ 2026-07-19</p>
-            </div>
-            <span id="ecount_count" class="text-sm text-slate-500"></span>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead class="bg-slate-100">
-                <tr>
-                  <th class="p-3 text-left">요청일</th>
-                  <th class="p-3 text-left">구매요청번호</th>
-                  <th class="p-3 text-left">발주서번호</th>
-                  <th class="p-3 text-left">거래처명</th>
-                  <th class="p-3 text-left">품목</th>
-                  <th class="p-3 text-right">수량</th>
-                  <th class="p-3 text-left">납기일자</th>
-                  <th class="p-3 text-right">금액</th>
-                  <th class="p-3 text-left">RMA</th>
-                  <th class="p-3 text-center">종결</th>
-                </tr>
-              </thead>
-              <tbody id="ecount_body">
-                <tr><td colspan="10" class="p-8 text-center text-slate-500">불러오는 중입니다...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>`;
-
-    window.__ecountRows = await e_loadRows();
-    ecountPurchases_setupYears();
-    ecountPurchases_render();
-  };
-
-  window.ecountPurchases_setupYears = function(){
-    const rows = window.__ecountRows || [];
-    const years = Array.from(new Set(rows.map(r => String(r.request_date || "").slice(0,4)).filter(Boolean))).sort().reverse();
-    const sel = e_el("ecount_year");
-    if(sel){
-      sel.innerHTML = `<option>전체</option>` + years.map(y => `<option>${e_esc(y)}</option>`).join("");
-    }
-  };
-
-  window.ecountPurchases_render = function(){
-    const all = window.__ecountRows || [];
-    const rows = e_filterRows(all);
-
-    const total = rows.reduce((s,r) => s + Number(r.amount || 0), 0);
-    const suppliers = new Set(rows.map(r => r.supplier_name).filter(Boolean)).size;
-    const active = rows.filter(r => ["진행중","미확인","확인"].includes(String(r.close_status || ""))).length;
-
-    const summary = e_el("ecount_summary");
-    if(summary){
-      summary.innerHTML = `
-        <div class="bg-white rounded-2xl shadow p-5"><div class="text-sm text-slate-500">조회 이력</div><div class="text-2xl font-black mt-1">${e_num(rows.length)}건</div></div>
-        <div class="bg-white rounded-2xl shadow p-5"><div class="text-sm text-slate-500">조회 금액</div><div class="text-2xl font-black mt-1">₩ ${e_num(total)}</div></div>
-        <div class="bg-white rounded-2xl shadow p-5"><div class="text-sm text-slate-500">거래처 수</div><div class="text-2xl font-black mt-1">${e_num(suppliers)}개</div></div>
-        <div class="bg-white rounded-2xl shadow p-5"><div class="text-sm text-slate-500">진행중/미확인</div><div class="text-2xl font-black mt-1">${e_num(active)}건</div></div>`;
-    }
-
-    const count = e_el("ecount_count");
-    if(count) count.textContent = `총 ${e_num(rows.length)}건 표시`;
-
-    const body = e_el("ecount_body");
-    if(!body) return;
-
-    if(!rows.length){
-      body.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-500">조회 결과가 없습니다.</td></tr>`;
-      return;
-    }
-
-    body.innerHTML = rows.slice(0, 1000).map(r => `
-      <tr class="border-t hover:bg-slate-50">
-        <td class="p-3 whitespace-nowrap">${e_esc(r.request_date || "")}</td>
-        <td class="p-3 font-bold whitespace-nowrap">${e_esc(r.request_no || "")}</td>
-        <td class="p-3 whitespace-nowrap">${e_esc(r.purchase_order_no || "")}</td>
-        <td class="p-3 whitespace-nowrap">${e_esc(r.supplier_name || "")}</td>
-        <td class="p-3 min-w-[260px]">${e_esc(r.item_name || "")}</td>
-        <td class="p-3 text-right">${e_num(r.qty)}</td>
-        <td class="p-3 whitespace-nowrap">${e_esc(r.delivery_date_raw || "")}</td>
-        <td class="p-3 text-right font-bold">₩ ${e_num(r.amount)}</td>
-        <td class="p-3">${e_esc(r.rma || "")}</td>
-        <td class="p-3 text-center">${e_statusBadge(r.close_status)}</td>
-      </tr>`).join("") + (rows.length > 1000 ? `<tr><td colspan="10" class="p-5 text-center text-slate-500">검색 결과가 1,000건을 초과하여 처음 1,000건만 표시됩니다. 검색어 또는 연도를 좁혀 주세요.</td></tr>` : "");
-  };
-
-  function installEcountPurchases(){
-    if(window.__ecountPurchasesInstalled || typeof window.switchTab !== "function") return;
-    const original = window.switchTab;
-    window.switchTab = function(tab){
-      if(tab === "purchases"){
-        ecountPurchases_open();
-        return;
-      }
-      return original.apply(this, arguments);
-    };
-    window.__ecountPurchasesInstalled = true;
-  }
-
-  installEcountPurchases();
-  let tries = 0;
-  const timer = setInterval(() => {
-    installEcountPurchases();
-    tries++;
-    if(window.__ecountPurchasesInstalled || tries > 30) clearInterval(timer);
-  }, 200);
-})();
-</script>
 
 </body>
 </html>
