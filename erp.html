@@ -351,7 +351,13 @@
             }
             return `공급가액 ${po2_currencyAmountLong(amounts.currency, amounts.subtotal)} / 부가세 미적용`;
         }
-        function today(){ return new Date().toISOString().slice(0,10); }
+        function today(){
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
         function ymd(){ return today().replaceAll('-',''); }
         function makeId(){ return 'po_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
         function po2_nextPoNo(type){
@@ -1671,10 +1677,45 @@
             if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
                 throw new Error('Supabase 연결을 찾지 못했습니다.');
             }
-            const { data, error } = await client.functions.invoke('create-po-link', { body: { type, po: d } });
+
+            // 국내용 발주서도 USD/EUR/JPY/CNY를 사용할 수 있으므로
+            // 공개 링크 저장 시 통화와 통화별 VAT 계산 결과를 명시적으로 함께 저장합니다.
+            const normalizedCurrency = po2_currencyCode(
+                d && d.currency ? d.currency : (type === 'overseas' ? 'USD' : 'KRW')
+            );
+            const publicPo = Object.assign({}, d || {}, {
+                type,
+                currency: normalizedCurrency
+            });
+
+            if (type === 'domestic') {
+                const amounts = po2_domesticAmounts(publicPo);
+                publicPo.subtotal = amounts.subtotal;
+                publicPo.vat = amounts.vat;
+                publicPo.total = amounts.total;
+                publicPo.vat_label = amounts.vatLabel;
+            }
+
+            const { data, error } = await client.functions.invoke('create-po-link', {
+                body: { type, currency: normalizedCurrency, po: publicPo }
+            });
             if (error) throw error;
             if (!data || data.ok !== true || !data.url) {
                 throw new Error((data && data.error) ? data.error : '발주서 웹 링크 생성 실패');
+            }
+
+            // Edge Function 또는 기존 DB 구조에서 currency 필드가 누락되더라도
+            // po-view.html이 정확한 통화를 복원할 수 있도록 링크에도 통화를 포함합니다.
+            try {
+                const url = new URL(data.url, window.location.href);
+                url.searchParams.set('currency', normalizedCurrency);
+                url.searchParams.set('pv', '20260727-currency-v2');
+                data.url = url.toString();
+            } catch (e) {
+                const sep = String(data.url).includes('?') ? '&' : '?';
+                data.url = String(data.url) + sep
+                    + 'currency=' + encodeURIComponent(normalizedCurrency)
+                    + '&pv=20260727-currency-v2';
             }
             return data;
         }
