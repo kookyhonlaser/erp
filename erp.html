@@ -353,6 +353,26 @@
             return Object.assign(po2_defaultHistoryState(), PO2_HISTORY_STATE || {});
         }
 
+        function po2_getHistoryScrollTop(){
+            const main = el('mainContent');
+            if(main) return Number(main.scrollTop || 0);
+            return Number(window.scrollY || document.documentElement.scrollTop || 0);
+        }
+
+        function po2_restoreHistoryScroll(scrollTop){
+            const top = Math.max(0, Number(scrollTop || 0));
+            const applyScroll = function(){
+                const main = el('mainContent');
+                if(main) main.scrollTop = top;
+                else window.scrollTo(0, top);
+            };
+
+            // 검색 목록과 하단 메일 이력 영역이 모두 그려진 뒤에도 같은 위치를 유지합니다.
+            requestAnimationFrame(() => requestAnimationFrame(applyScroll));
+            setTimeout(applyScroll, 120);
+            setTimeout(applyScroll, 300);
+        }
+
         function po2_captureHistoryState(){
             if(!el('po2_history_body')) return;
             PO2_HISTORY_STATE = {
@@ -360,7 +380,7 @@
                 month: val('po2_month'),
                 type: val('po2_type') || 'all',
                 status: val('po2_status') || 'all',
-                scrollY: window.scrollY || document.documentElement.scrollTop || 0,
+                scrollY: po2_getHistoryScrollTop(),
                 valid: true
             };
             try { sessionStorage.setItem(PO2_HISTORY_STATE_KEY, JSON.stringify(PO2_HISTORY_STATE)); } catch(e) {}
@@ -877,7 +897,7 @@
             }
             const historyTask = po2_renderHistory();
             if(restoreState && restoreState.valid){
-                Promise.resolve(historyTask).then(() => setTimeout(() => window.scrollTo(0, Number(restoreState.scrollY || 0)), 0));
+                Promise.resolve(historyTask).then(() => po2_restoreHistoryScroll(restoreState.scrollY));
             }
             po2_loadPartners();
         };
