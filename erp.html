@@ -606,27 +606,30 @@
             return String(v || '').replace(/\s+/g, '').replace(/[()（）.,·ㆍ\-]/g, '').toLowerCase();
         }
 
-        async function po2_fillMatchedDomesticPartner(supplierName){
+        async function po2_fillMatchedPartner(type, supplierName){
             const target = po2_normalizePartnerName(supplierName);
             if(!target) return;
             const partners = await po2_loadPartners();
             const exact = (partners || []).find(p => po2_normalizePartnerName(p.name) === target);
             if(!exact) return;
-            setVal('dom_supplier_name', exact.name || supplierName);
-            setVal('dom_supplier_biz', exact.biz);
-            setVal('dom_supplier_manager', exact.manager);
-            setVal('dom_supplier_tel', exact.phone);
-            setVal('dom_supplier_email', exact.email);
-            setVal('dom_supplier_addr', exact.address);
+            const pre = type === 'overseas' ? 'exp' : 'dom';
+            setVal(pre + '_supplier_name', exact.name || supplierName);
+            setVal(pre + '_supplier_biz', exact.biz);
+            setVal(pre + '_supplier_manager', exact.manager);
+            setVal(pre + '_supplier_tel', exact.phone);
+            setVal(pre + '_supplier_email', exact.email);
+            setVal(pre + '_supplier_addr', exact.address);
         }
 
-        window.po2_reorderEcount = async function(requestNo){
+        window.po2_reorderEcount = async function(requestNo, orderType='domestic'){
             const reqNo = String(requestNo || '').trim();
+            const type = orderType === 'overseas' ? 'overseas' : 'domestic';
             if(!reqNo){ alert('구매요청번호를 확인할 수 없습니다.'); return; }
 
             const content = el('contentArea');
             if(content){
-                content.innerHTML = `<div class="max-w-5xl mx-auto"><div class="bg-white rounded-2xl shadow p-10 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>재발주 품목을 불러오는 중입니다...</div></div>`;
+                const loadingText = type === 'overseas' ? '해외용 재발주 품목을 불러오는 중입니다...' : '국내용 재발주 품목을 불러오는 중입니다...';
+                content.innerHTML = `<div class="max-w-5xl mx-auto"><div class="bg-white rounded-2xl shadow p-10 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>${loadingText}</div></div>`;
             }
 
             const list = await po2_loadCloudHistory();
@@ -661,21 +664,42 @@
                 };
             }).filter(x => x.name || x.spec || x.qty || x.price);
 
-            const draft = Object.assign(defaultDomestic(), {
-                id: '',
-                type: 'domestic',
-                po_no: domesticNo(),
-                po_date: today(),
-                delivery_date: today(),
-                project_name: '',
-                supplier_name: po.supplier_name || (sourceRows[0] && sourceRows[0].supplier_name) || '',
-                note: `이카운트 구매요청번호 ${reqNo}를 기준으로 작성한 재발주서입니다.\n수량, 단가, 납기일 및 품목을 확인한 후 발주해 주세요.`,
-                items: reorderItems.length ? reorderItems : [{name:'', spec:'', qty:1, price:0}],
-                __reorder_from_ecount: reqNo
-            });
+            const supplierName = po.supplier_name || (sourceRows[0] && sourceRows[0].supplier_name) || '';
+            const items = reorderItems.length ? reorderItems : [{name:'', spec:'', qty:1, price:0}];
 
-            po2_renderDomestic(draft);
-            await po2_fillMatchedDomesticPartner(draft.supplier_name);
+            if(type === 'overseas'){
+                const draft = Object.assign(defaultOverseas(), {
+                    id: '',
+                    type: 'overseas',
+                    po_no: overseasNo(),
+                    po_date: today(),
+                    delivery_date: today(),
+                    project_name: '',
+                    currency: po.currency || 'KRW',
+                    supplier_name: supplierName,
+                    note: `Re-order based on ECOUNT request no. ${reqNo}.\nPlease review quantity, unit price, currency, delivery date and items before issuing this PO.`,
+                    items: items,
+                    __reorder_from_ecount: reqNo
+                });
+                po2_renderOverseas(draft);
+                await po2_fillMatchedPartner('overseas', draft.supplier_name);
+            }else{
+                const draft = Object.assign(defaultDomestic(), {
+                    id: '',
+                    type: 'domestic',
+                    po_no: domesticNo(),
+                    po_date: today(),
+                    delivery_date: today(),
+                    project_name: '',
+                    supplier_name: supplierName,
+                    note: `이카운트 구매요청번호 ${reqNo}를 기준으로 작성한 재발주서입니다.\n수량, 단가, 납기일 및 품목을 확인한 후 발주해 주세요.`,
+                    items: items,
+                    __reorder_from_ecount: reqNo
+                });
+                po2_renderDomestic(draft);
+                await po2_fillMatchedPartner('domestic', draft.supplier_name);
+            }
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -1057,7 +1081,10 @@
                     <p class="text-slate-500 mt-2">구매요청번호를 클릭하면 이 화면에서 세부 구매품목을 확인합니다.</p>
                   </div>
                   <div class="flex flex-col items-end gap-2">
-                    <button type="button" onclick="po2_reorderEcount('${attr(po.ecount_request_no || '')}')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-black hover:bg-emerald-700 shadow-sm"><i class="fa-solid fa-cart-plus mr-2"></i>이 품목으로 새 발주서 작성</button>
+                    <div class="flex flex-wrap justify-end gap-2">
+                      <button type="button" onclick="po2_reorderEcount('${attr(po.ecount_request_no || '')}', 'domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-black hover:bg-emerald-700 shadow-sm"><i class="fa-solid fa-cart-plus mr-2"></i>국내용 발주서 작성</button>
+                      <button type="button" onclick="po2_reorderEcount('${attr(po.ecount_request_no || '')}', 'overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-black hover:bg-cyan-700 shadow-sm"><i class="fa-solid fa-plane-departure mr-2"></i>해외용 PO 작성</button>
+                    </div>
                     ${po2_returnButtons(true)}
                   </div>
                 </div>
@@ -1172,7 +1199,8 @@
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
                     <input type="hidden" id="exp_po_id" value="${attr(d.id)}"><input type="hidden" id="exp_original_po_no" value="${attr(d.po_no)}">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div>${po2_returnButtons(!!record)}<h1 class="text-3xl font-black text-slate-800">해외용 Purchase Order</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send Web PO Link</button></div></div>
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div>${po2_returnButtons(!!record)}<h1 class="text-3xl font-black text-slate-800">${d.__reorder_from_ecount ? '해외용 재발주 Purchase Order' : '해외용 Purchase Order'}</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send Web PO Link</button></div></div>
+                    ${d.__reorder_from_ecount ? `<div class="mb-4 rounded-xl border border-cyan-200 bg-cyan-50 px-5 py-4 text-cyan-900"><div class="font-black"><i class="fa-solid fa-rotate mr-2"></i>이카운트 구매요청번호 ${esc(d.__reorder_from_ecount)}에서 불러온 해외용 새 PO입니다.</div><div class="text-sm mt-1">기존 이력은 변경되지 않습니다. 수량·단가·통화·납기일을 확인하고 품목을 추가하거나 삭제한 뒤 저장 또는 메일 발송을 진행하세요.</div></div>` : ''}
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-6 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">PO No.</label><input id="exp_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Date</label><input id="exp_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Project</label><input id="exp_project_name" class="input-box" value="${attr(d.project_name || d.project || '')}" placeholder="Project name"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Currency</label><select id="exp_currency" class="input-box" onchange="po2_calc('overseas')">${['USD','EUR','JPY','CNY','KRW'].map(c => `<option ${c === (d.currency || 'USD') ? 'selected' : ''}>${c}</option>`).join('')}</select></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Incoterms</label><input id="exp_incoterms" class="input-box" value="${attr(d.incoterms)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Delivery Request</label><input id="exp_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
