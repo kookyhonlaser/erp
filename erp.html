@@ -330,6 +330,27 @@
             const c = po2_currencyCode(currency);
             return c === 'KRW' ? po2_moneyKo(amount) + ' 원 정' : c + ' ' + num(amount);
         }
+        function po2_domesticVat(currency, subtotal){
+            return po2_currencyCode(currency) === 'KRW' ? Math.round(Number(subtotal || 0) * 0.1 * 100) / 100 : 0;
+        }
+        function po2_domesticAmounts(d){
+            const data = d || {};
+            const currency = po2_currencyCode(data.currency || 'KRW');
+            const itemSubtotal = (Array.isArray(data.items) ? data.items : []).reduce((sum, item) => {
+                const amount = item && item.amount !== undefined ? Number(item.amount || 0) : Number(item && item.qty || 0) * Number(item && item.price || 0);
+                return sum + amount;
+            }, 0);
+            const hasSubtotal = data.subtotal !== undefined && data.subtotal !== null && data.subtotal !== '';
+            const subtotal = hasSubtotal ? Number(data.subtotal || 0) : itemSubtotal;
+            const vat = po2_domesticVat(currency, subtotal);
+            return { currency, subtotal, vat, total: subtotal + vat, vatLabel: currency === 'KRW' ? 'VAT포함' : 'VAT 미적용' };
+        }
+        function po2_domesticBreakdown(amounts){
+            if (amounts.currency === 'KRW') {
+                return `공급가액 ${po2_currencyAmountLong(amounts.currency, amounts.subtotal)} + 부가세 ${po2_currencyAmountLong(amounts.currency, amounts.vat)} = ${po2_currencyAmountLong(amounts.currency, amounts.total)}`;
+            }
+            return `공급가액 ${po2_currencyAmountLong(amounts.currency, amounts.subtotal)} / 부가세 미적용`;
+        }
         function today(){ return new Date().toISOString().slice(0,10); }
         function ymd(){ return today().replaceAll('-',''); }
         function makeId(){ return 'po_' + Date.now() + '_' + Math.random().toString(36).slice(2,8); }
@@ -1180,7 +1201,7 @@
             [...tbody.querySelectorAll('tr')].forEach((r,i)=>{ const q=Number(r.querySelector('.po-qty').value||0); const p=Number(r.querySelector('.po-price').value||0); const a=q*p; subtotal+=a; r.querySelector('.po-no').textContent=i+1; r.querySelector('.po-amount').textContent=num(a); });
             if (type === 'domestic') {
                 const c = po2_currencyCode(val('dom_currency') || 'KRW');
-                const vat = Math.round(subtotal * 0.1 * 100) / 100;
+                const vat = po2_domesticVat(c, subtotal);
                 setText('dom_unit_price_label', '단가 (' + c + ')');
                 setText('dom_amount_label', '금액 (' + c + ')');
                 setText('dom_subtotal', po2_currencyAmount(c, subtotal));
@@ -1199,7 +1220,7 @@
         }
         function collect(type){
             const it = items(type); const subtotal = it.reduce((s,x)=>s+x.amount,0); const now = new Date().toISOString();
-            if (type === 'domestic') { const vat=Math.round(subtotal*0.1*100)/100; return {id:val('dom_po_id')||makeId(), type, po_no:val('dom_po_no'), po_date:val('dom_po_date'), project_name:val('dom_project_name'), writer:val('dom_writer'), delivery_date:val('dom_delivery_date'), buyer_name:val('dom_buyer_name'), buyer_biz:val('dom_buyer_biz'), buyer_addr:val('dom_buyer_addr'), buyer_tel:val('dom_buyer_tel'), buyer_email:val('dom_buyer_email'), supplier_name:val('dom_supplier_name'), supplier_biz:val('dom_supplier_biz'), supplier_manager:val('dom_supplier_manager'), supplier_tel:val('dom_supplier_tel'), supplier_email:val('dom_supplier_email'), supplier_addr:val('dom_supplier_addr'), delivery_place:val('dom_delivery_place'), note:val('dom_note'), currency:po2_currencyCode(val('dom_currency')||'KRW'), subtotal, vat, total:subtotal+vat, items:it, updated_at:now}; }
+            if (type === 'domestic') { const currency=po2_currencyCode(val('dom_currency')||'KRW'); const vat=po2_domesticVat(currency, subtotal); return {id:val('dom_po_id')||makeId(), type, po_no:val('dom_po_no'), po_date:val('dom_po_date'), project_name:val('dom_project_name'), writer:val('dom_writer'), delivery_date:val('dom_delivery_date'), buyer_name:val('dom_buyer_name'), buyer_biz:val('dom_buyer_biz'), buyer_addr:val('dom_buyer_addr'), buyer_tel:val('dom_buyer_tel'), buyer_email:val('dom_buyer_email'), supplier_name:val('dom_supplier_name'), supplier_biz:val('dom_supplier_biz'), supplier_manager:val('dom_supplier_manager'), supplier_tel:val('dom_supplier_tel'), supplier_email:val('dom_supplier_email'), supplier_addr:val('dom_supplier_addr'), delivery_place:val('dom_delivery_place'), note:val('dom_note'), currency, subtotal, vat, total:subtotal+vat, items:it, updated_at:now}; }
             return {id:val('exp_po_id')||makeId(), type, po_no:val('exp_po_no'), po_date:val('exp_po_date'), project_name:val('exp_project_name'), delivery_date:val('exp_delivery_date'), currency:val('exp_currency')||'USD', incoterms:val('exp_incoterms'), buyer_name:val('exp_buyer_name'), buyer_addr:val('exp_buyer_addr'), buyer_tel:val('exp_buyer_tel'), buyer_email:val('exp_buyer_email'), supplier_name:val('exp_supplier_name'), supplier_biz:val('exp_supplier_biz'), supplier_manager:val('exp_supplier_manager'), supplier_tel:val('exp_supplier_tel'), supplier_email:val('exp_supplier_email'), supplier_addr:val('exp_supplier_addr'), destination:val('exp_destination'), payment_terms:val('exp_payment_terms'), note:val('exp_note'), subtotal, vat:0, total:subtotal, items:it, updated_at:now};
         }
         window.po2_saveCurrent = function(type, status='저장', silent=false){
@@ -1440,7 +1461,8 @@
                 : "※ This email is formatted as a purchase order. You can print this email directly from your mail client.";
 
             if (type === 'domestic') {
-                const domesticCurrency = po2_currencyCode(d.currency || 'KRW');
+                const domesticAmounts = po2_domesticAmounts(d);
+                const domesticCurrency = domesticAmounts.currency;
                 return `
                 ${printCss}
                 <div class="po-mail-print-page" style="${baseStyle}">
@@ -1498,8 +1520,8 @@
 
                         <table style="width:100%;border-collapse:collapse;font-size:14px;font-weight:900;margin-bottom:4px;">
                             <tr>
-                                <td style="border:2px solid #333;padding:7px;">금 액 : ${po2_domesticAmountTitle(domesticCurrency, d.total)}</td>
-                                <td style="border:2px solid #333;padding:7px;text-align:right;">( ${po2_currencyAmount(domesticCurrency, d.total)} ) / VAT포함</td>
+                                <td style="border:2px solid #333;padding:7px;">금 액 : ${po2_domesticAmountTitle(domesticCurrency, domesticAmounts.total)}</td>
+                                <td style="border:2px solid #333;padding:7px;text-align:right;">( ${po2_currencyAmount(domesticCurrency, domesticAmounts.total)} ) / ${domesticAmounts.vatLabel}</td>
                             </tr>
                         </table>
 
@@ -1518,7 +1540,7 @@
                         </table>
 
                         <table style="width:100%;border-collapse:collapse;font-size:12px;">
-                            <tr><th style="border:1px solid #333;background:#eee;padding:8px;width:120px;">합계금액</th><td style="border:1px solid #333;padding:8px;font-weight:900;">공급가액 ${po2_currencyAmountLong(domesticCurrency, d.subtotal)} + 부가세 ${po2_currencyAmountLong(domesticCurrency, d.vat)} = ${po2_currencyAmountLong(domesticCurrency, d.total)}</td></tr>
+                            <tr><th style="border:1px solid #333;background:#eee;padding:8px;width:120px;">합계금액</th><td style="border:1px solid #333;padding:8px;font-weight:900;">${po2_domesticBreakdown(domesticAmounts)}</td></tr>
                             <tr><th style="border:1px solid #333;background:#eee;padding:8px;">납기장소</th><td style="border:1px solid #333;padding:8px;">${esc(d.delivery_place)} / ${esc(d.buyer_addr)}<br>입고담당자 : ${esc(d.writer)} (수신인을 정확하게 표기하여 주세요.)</td></tr>
                             <tr><th style="border:1px solid #333;background:#eee;padding:8px;">전자세금계산서</th><td style="border:1px solid #333;padding:8px;">담당자 : ${esc(d.writer)}<br>전 화 : ${esc(d.buyer_tel)} &nbsp;&nbsp;&nbsp; 이메일 : ${esc(d.buyer_email)}</td></tr>
                             <tr><th style="border:1px solid #333;background:#eee;padding:8px;">주의사항</th><td style="border:1px solid #333;padding:8px;line-height:1.55;">① 납기엄수 : 지정납기 내에 미 입고시 발주는 취소될 수 있습니다.<br>② 하자발생 : 수입검사 및 생산 중 발견된 불량품은 즉시 반품조치 합니다.<br>* 재료결함으로 인한 불량 또는 손실발생시 공급자는 지체 없이 보상하여야 합니다.<br>③ 품질우선 : 귀사의 제품안전 및 품질 이상이 발생하지 않도록 지속적으로 관리하여 주시기 바랍니다.</td></tr>
@@ -1631,7 +1653,8 @@
 
         function po2_makeWebLinkMail(type, d, linkUrl){
             if (type === 'domestic') {
-                const domesticCurrency = po2_currencyCode(d.currency || 'KRW');
+                const domesticAmounts = po2_domesticAmounts(d);
+                const domesticCurrency = domesticAmounts.currency;
                 const subject = `[쿠키혼레이저] 발주서 송부드립니다 - ${d.po_no}`;
                 const text = `안녕하세요.
 
@@ -1645,7 +1668,7 @@ ${linkUrl}
 발주번호: ${d.po_no}
 발주일자: ${d.po_date}
 납기 요청일: ${d.delivery_date}
-합계금액: ${po2_currencyAmountLong(domesticCurrency, d.total)}
+합계금액: ${po2_currencyAmountLong(domesticCurrency, domesticAmounts.total)}
 
 확인 후 회신 부탁드립니다.
 
@@ -1666,7 +1689,7 @@ ${linkUrl}
                             <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">발주번호</th><td style="border:1px solid #ccc;padding:8px 12px;">${esc(d.po_no)}</td></tr>
                             <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">발주일자</th><td style="border:1px solid #ccc;padding:8px 12px;">${esc(d.po_date)}</td></tr>
                             <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">납기 요청일</th><td style="border:1px solid #ccc;padding:8px 12px;">${esc(d.delivery_date)}</td></tr>
-                            <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">합계금액</th><td style="border:1px solid #ccc;padding:8px 12px;font-weight:900;">${po2_currencyAmountLong(domesticCurrency, d.total)}</td></tr>
+                            <tr><th style="border:1px solid #ccc;background:#f3f4f6;padding:8px 12px;text-align:left;">합계금액</th><td style="border:1px solid #ccc;padding:8px 12px;font-weight:900;">${po2_currencyAmountLong(domesticCurrency, domesticAmounts.total)}</td></tr>
                         </table>
                         <p>확인 후 회신 부탁드립니다.</p>
                         <p>감사합니다.<br>쿠키혼레이저</p>
@@ -1869,8 +1892,9 @@ KOOKYHON LASER`;
                 .abroad-head{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-bottom:17px}.abroad-company{font-size:11.3px;margin-top:4px;line-height:1.12}.abroad-title{font-size:28px;font-weight:900;letter-spacing:.5px;margin:0 0 28px;text-align:left}.abroad-meta{font-size:12.4px}.abroad-meta .row{display:grid;grid-template-columns:112px 1fr;margin:3px 0}.abroad-two{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-bottom:15px;min-height:78px}.abroad-box-title{font-weight:900;font-size:15px;margin-bottom:10px}.abroad-addr{font-size:12.1px;line-height:1.17}.abroad-terms{margin:12px 0 16px}.abroad-terms th{font-size:13px}.abroad-terms td{height:36px;text-align:center;font-size:12px;padding:4px}.abroad-items th,.abroad-items td{height:19px;font-size:9.6px;padding:2px 4px}.abroad-items th{height:21px}.abroad-total{width:185px;margin-left:auto;margin-top:4px}.abroad-total th,.abroad-total td{border:2px solid #111!important;font-size:12px!important;padding:3px 6px!important}.abroad-bottom{display:grid;grid-template-columns:1.15fr 1fr;gap:28px;margin-top:25px;font-size:12px;line-height:1.16}.sign-line{border-top:3px solid #111;width:210px;text-align:center;margin-top:45px;margin-left:auto;padding-top:3px}.notes-title{font-weight:900;margin-top:9px}
             </style>`;
             if (type === 'domestic') {
-                const domesticCurrency = po2_currencyCode(d.currency || 'KRW');
-                const totalText = po2_domesticAmountTitle(domesticCurrency, d.total);
+                const domesticAmounts = po2_domesticAmounts(d);
+                const domesticCurrency = domesticAmounts.currency;
+                const totalText = po2_domesticAmountTitle(domesticCurrency, domesticAmounts.total);
                 return `${style}<div class="po-page domestic-page">
                     <div class="dom-head">
                         <div class="dom-title">발 주 서</div>
@@ -1894,9 +1918,9 @@ KOOKYHON LASER`;
                             <tr><th>e-mail</th><td>${esc(d.buyer_email)}</td></tr>
                         </table>
                     </div>
-                    <div class="dom-money"><div>금 액 : ${esc(totalText)}</div><div>( ${po2_currencyAmount(domesticCurrency, d.total)} ) / VAT포함</div></div>
+                    <div class="dom-money"><div>금 액 : ${esc(totalText)}</div><div>( ${po2_currencyAmount(domesticCurrency, domesticAmounts.total)} ) / ${domesticAmounts.vatLabel}</div></div>
                     <table class="po-table dom-items"><thead><tr><th style="width:32px">번호</th><th style="width:180px">품목</th><th>규격</th><th style="width:35px">수량</th><th style="width:75px">단가 (${esc(domesticCurrency)})</th><th style="width:95px">금액 (${esc(domesticCurrency)})</th></tr></thead><tbody>${po2_rowsDomestic(d.items)}</tbody></table>
-                    <table class="po-table dom-bottom"><tr class="dom-total-row"><th>합계금액</th><td><span class="dom-total-highlight">${po2_currencyAmountLong(domesticCurrency, d.total)} / VAT포함</span> &nbsp; <span>공급가액 ${po2_currencyAmountLong(domesticCurrency, d.subtotal)} + 부가세 ${po2_currencyAmountLong(domesticCurrency, d.vat)}</span></td></tr><tr><th>납기장소</th><td>${esc(d.delivery_place || d.buyer_name)} / ${esc(d.buyer_addr)}<br><b>입고담당자 : ${esc(d.writer || '')}</b> (수신인을 정확하게 표기하여 주세요.)</td></tr><tr><th>전자세금계산서</th><td>담당자 : ${esc(d.writer || '')}<br>전 화 : ${esc(d.buyer_tel)} &nbsp;&nbsp;&nbsp; 팩 스 : 031-355-3129<br>이메일 : ${esc(d.buyer_email)}</td></tr><tr><th>주의사항</th><td class="dom-caution">① 납기엄수 : 지정납기 내에 미 입고시 발주는 취소될 수 있습니다.<br>② 하자발생 : 수입검사 및 생산 중 발견된 불량품은 즉시 반품조치 합니다.<br>* 재료결함으로 인한 불량 또는 손실발생시 공급자는 지체 없이 보상하여야 합니다.<br>③ 품질우선 : 당사의 고객은 품질우선을 중요시합니다. 따라서 귀사의 제품안전 및 품질 이상이 발생하지 않도록 지속적으로 관리하여 주시기 바랍니다.</td></tr></table>
+                    <table class="po-table dom-bottom"><tr class="dom-total-row"><th>합계금액</th><td><span class="dom-total-highlight">${po2_currencyAmountLong(domesticCurrency, domesticAmounts.total)} / ${domesticAmounts.vatLabel}</span> &nbsp; <span>${po2_domesticBreakdown(domesticAmounts)}</span></td></tr><tr><th>납기장소</th><td>${esc(d.delivery_place || d.buyer_name)} / ${esc(d.buyer_addr)}<br><b>입고담당자 : ${esc(d.writer || '')}</b> (수신인을 정확하게 표기하여 주세요.)</td></tr><tr><th>전자세금계산서</th><td>담당자 : ${esc(d.writer || '')}<br>전 화 : ${esc(d.buyer_tel)} &nbsp;&nbsp;&nbsp; 팩 스 : 031-355-3129<br>이메일 : ${esc(d.buyer_email)}</td></tr><tr><th>주의사항</th><td class="dom-caution">① 납기엄수 : 지정납기 내에 미 입고시 발주는 취소될 수 있습니다.<br>② 하자발생 : 수입검사 및 생산 중 발견된 불량품은 즉시 반품조치 합니다.<br>* 재료결함으로 인한 불량 또는 손실발생시 공급자는 지체 없이 보상하여야 합니다.<br>③ 품질우선 : 당사의 고객은 품질우선을 중요시합니다. 따라서 귀사의 제품안전 및 품질 이상이 발생하지 않도록 지속적으로 관리하여 주시기 바랍니다.</td></tr></table>
                 </div>`;
             }
             return `${style}<div class="po-page abroad-page">
