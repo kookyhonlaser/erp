@@ -710,6 +710,104 @@
         };
 
 
+
+        window.po2_reorderSaved = async function(id, orderType='domestic'){
+            const sourceId = String(id || '').trim();
+            const type = orderType === 'overseas' ? 'overseas' : 'domestic';
+            if(!sourceId){ alert('재작성할 발주서 정보를 확인할 수 없습니다.'); return; }
+
+            const content = el('contentArea');
+            if(content){
+                const loadingText = type === 'overseas' ? '해외용 새 PO를 준비하는 중입니다...' : '국내용 새 발주서를 준비하는 중입니다...';
+                content.innerHTML = `<div class="max-w-5xl mx-auto"><div class="bg-white rounded-2xl shadow p-10 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i>${loadingText}</div></div>`;
+            }
+
+            const po = await po2_getCloudHistoryById(sourceId);
+            if(!po || po.source === 'ecount'){
+                alert('재작성할 ERP 발주서를 찾지 못했습니다.');
+                po2_returnToSearchResults();
+                return;
+            }
+
+            const copiedItems = (Array.isArray(po.items) ? po.items : []).map((item, index) => ({
+                no: index + 1,
+                name: item && item.name ? item.name : '',
+                spec: item && item.spec ? item.spec : '',
+                qty: Number(item && item.qty || 0) || 1,
+                price: Number(item && item.price || 0),
+                amount: (Number(item && item.qty || 0) || 1) * Number(item && item.price || 0)
+            }));
+            const items = copiedItems.length ? copiedItems : [{name:'', spec:'', qty:1, price:0}];
+            const sourceNo = po.po_no || sourceId;
+            const sameType = po.type === type;
+
+            if(type === 'overseas'){
+                const base = defaultOverseas();
+                const draft = Object.assign({}, base, {
+                    id: '',
+                    type: 'overseas',
+                    po_no: overseasNo(),
+                    po_date: today(),
+                    delivery_date: today(),
+                    project_name: po.project_name || po.project || '',
+                    currency: po.currency || base.currency,
+                    supplier_name: po.supplier_name || '',
+                    supplier_biz: po.supplier_biz || '',
+                    supplier_manager: po.supplier_manager || '',
+                    supplier_tel: po.supplier_tel || '',
+                    supplier_email: po.supplier_email || '',
+                    supplier_addr: po.supplier_addr || '',
+                    items,
+                    note: sameType && po.note ? po.note : `Re-order copied from ERP PO ${sourceNo}.
+Please review quantity, unit price, currency, delivery date and items before issuing this PO.`,
+                    __reorder_from_saved: sourceNo
+                });
+                if(sameType){
+                    draft.incoterms = po.incoterms || base.incoterms;
+                    draft.buyer_name = po.buyer_name || base.buyer_name;
+                    draft.buyer_addr = po.buyer_addr || base.buyer_addr;
+                    draft.buyer_tel = po.buyer_tel || base.buyer_tel;
+                    draft.buyer_email = po.buyer_email || base.buyer_email;
+                    draft.destination = po.destination || base.destination;
+                    draft.payment_terms = po.payment_terms || base.payment_terms;
+                }
+                po2_renderOverseas(draft);
+            }else{
+                const base = defaultDomestic();
+                const draft = Object.assign({}, base, {
+                    id: '',
+                    type: 'domestic',
+                    po_no: domesticNo(),
+                    po_date: today(),
+                    delivery_date: today(),
+                    project_name: po.project_name || po.project || '',
+                    currency: po.currency || base.currency,
+                    writer: po.writer || base.writer,
+                    supplier_name: po.supplier_name || '',
+                    supplier_biz: po.supplier_biz || '',
+                    supplier_manager: po.supplier_manager || '',
+                    supplier_tel: po.supplier_tel || '',
+                    supplier_email: po.supplier_email || '',
+                    supplier_addr: po.supplier_addr || '',
+                    items,
+                    note: sameType && po.note ? po.note : `기존 ERP 발주서 ${sourceNo}를 기준으로 복사한 재발주서입니다.
+수량, 단가, 납기일 및 품목을 확인한 후 발주해 주세요.`,
+                    __reorder_from_saved: sourceNo
+                });
+                if(sameType){
+                    draft.buyer_name = po.buyer_name || base.buyer_name;
+                    draft.buyer_biz = po.buyer_biz || base.buyer_biz;
+                    draft.buyer_addr = po.buyer_addr || base.buyer_addr;
+                    draft.buyer_tel = po.buyer_tel || base.buyer_tel;
+                    draft.buyer_email = po.buyer_email || base.buyer_email;
+                    draft.delivery_place = po.delivery_place || base.delivery_place;
+                }
+                po2_renderDomestic(draft);
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
         function po2_setCurrentId(type, id){
             const hidden = el(type === 'domestic' ? 'dom_po_id' : 'exp_po_id');
             if(hidden && id) hidden.value = id;
@@ -1178,8 +1276,8 @@
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
                     <input type="hidden" id="dom_po_id" value="${attr(d.id)}"><input type="hidden" id="dom_original_po_no" value="${attr(d.po_no)}">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div>${po2_returnButtons(!!record)}<h1 class="text-3xl font-black text-slate-800">${d.__reorder_from_ecount ? '국내용 재발주서' : '국내용 발주서'}</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">웹 발주서 링크 하이웍스 발송</button></div></div>
-                    ${d.__reorder_from_ecount ? `<div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-900"><div class="font-black"><i class="fa-solid fa-rotate mr-2"></i>이카운트 구매요청번호 ${esc(d.__reorder_from_ecount)}에서 불러온 새 발주서입니다.</div><div class="text-sm mt-1">기존 이력은 변경되지 않습니다. 아래에서 수량·단가를 수정하거나 품목을 추가·삭제한 뒤 저장 또는 메일 발송을 진행하세요.</div></div>` : ''}
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div>${po2_returnButtons(!!record)}<h1 class="text-3xl font-black text-slate-800">${(d.__reorder_from_ecount || d.__reorder_from_saved) ? '국내용 재발주서' : '국내용 발주서'}</h1></div><div class="flex gap-2 flex-wrap">${d.id && !d.__reorder_from_ecount && !d.__reorder_from_saved ? `<button type="button" onclick="po2_reorderSaved('${attr(d.id)}','domestic')" class="px-5 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700"><i class="fa-solid fa-copy mr-1"></i>국내용 재작성</button><button type="button" onclick="po2_reorderSaved('${attr(d.id)}','overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold hover:bg-cyan-700"><i class="fa-solid fa-plane-departure mr-1"></i>해외용 PO 재작성</button>` : ''}<button type="button" onclick="po2_saveCurrent('domestic')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">저장</button><button type="button" onclick="po2_saveAs('domestic')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">다른 이름으로 저장</button><button type="button" onclick="po2_print('domestic')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">인쇄 / PDF 저장</button><button type="button" onclick="po2_mail('domestic')" class="px-5 py-3 bg-blue-600 text-white rounded-lg font-bold">웹 발주서 링크 하이웍스 발송</button></div></div>
+                    ${d.__reorder_from_ecount ? `<div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-900"><div class="font-black"><i class="fa-solid fa-rotate mr-2"></i>이카운트 구매요청번호 ${esc(d.__reorder_from_ecount)}에서 불러온 새 발주서입니다.</div><div class="text-sm mt-1">기존 이력은 변경되지 않습니다. 아래에서 수량·단가를 수정하거나 품목을 추가·삭제한 뒤 저장 또는 메일 발송을 진행하세요.</div></div>` : (d.__reorder_from_saved ? `<div class="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-5 py-4 text-purple-900"><div class="font-black"><i class="fa-solid fa-copy mr-2"></i>기존 ERP 발주서 ${esc(d.__reorder_from_saved)}에서 복사한 새 발주서입니다.</div><div class="text-sm mt-1">원본 이력은 변경되지 않습니다. 발주번호와 발주일자는 새로 생성되었으며, 수량·단가·품목을 수정한 뒤 새 발주서로 저장하거나 발송하세요.</div></div>` : '')}
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">발주번호</label><input id="dom_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">발주일자</label><input id="dom_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">프로젝트명</label><input id="dom_project_name" class="input-box" value="${attr(d.project_name || d.project || '')}" placeholder="예: 코스텍 조명세트"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">작성자</label><input id="dom_writer" class="input-box" value="${attr(d.writer)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">통화</label><select id="dom_currency" class="input-box" onchange="po2_calc('domestic')">${['KRW','USD','EUR','JPY','CNY'].map(c => `<option value="${c}" ${c === po2_currencyCode(d.currency) ? 'selected' : ''}>${po2_currencyLabel(c)}</option>`).join('')}</select></div><div><label class="block text-sm font-bold text-slate-600 mb-2">납기 요청일</label><input id="dom_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
@@ -1205,8 +1303,8 @@
                 content.innerHTML = `
                 <div class="max-w-7xl mx-auto">
                     <input type="hidden" id="exp_po_id" value="${attr(d.id)}"><input type="hidden" id="exp_original_po_no" value="${attr(d.po_no)}">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div>${po2_returnButtons(!!record)}<h1 class="text-3xl font-black text-slate-800">${d.__reorder_from_ecount ? '해외용 재발주 Purchase Order' : '해외용 Purchase Order'}</h1></div><div class="flex gap-2 flex-wrap"><button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send Web PO Link</button></div></div>
-                    ${d.__reorder_from_ecount ? `<div class="mb-4 rounded-xl border border-cyan-200 bg-cyan-50 px-5 py-4 text-cyan-900"><div class="font-black"><i class="fa-solid fa-rotate mr-2"></i>이카운트 구매요청번호 ${esc(d.__reorder_from_ecount)}에서 불러온 해외용 새 PO입니다.</div><div class="text-sm mt-1">기존 이력은 변경되지 않습니다. 수량·단가·통화·납기일을 확인하고 품목을 추가하거나 삭제한 뒤 저장 또는 메일 발송을 진행하세요.</div></div>` : ''}
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6"><div>${po2_returnButtons(!!record)}<h1 class="text-3xl font-black text-slate-800">${(d.__reorder_from_ecount || d.__reorder_from_saved) ? '해외용 재발주 Purchase Order' : '해외용 Purchase Order'}</h1></div><div class="flex gap-2 flex-wrap">${d.id && !d.__reorder_from_ecount && !d.__reorder_from_saved ? `<button type="button" onclick="po2_reorderSaved('${attr(d.id)}','domestic')" class="px-5 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700"><i class="fa-solid fa-copy mr-1"></i>국내용 재작성</button><button type="button" onclick="po2_reorderSaved('${attr(d.id)}','overseas')" class="px-5 py-3 bg-cyan-700 text-white rounded-lg font-bold hover:bg-cyan-800"><i class="fa-solid fa-plane-departure mr-1"></i>해외용 PO 재작성</button>` : ''}<button type="button" onclick="po2_saveCurrent('overseas')" class="px-5 py-3 bg-emerald-600 text-white rounded-lg font-bold">Save</button><button type="button" onclick="po2_saveAs('overseas')" class="px-5 py-3 bg-amber-500 text-white rounded-lg font-bold">Save As</button><button type="button" onclick="po2_print('overseas')" class="px-5 py-3 bg-slate-800 text-white rounded-lg font-bold">Print / Save PDF</button><button type="button" onclick="po2_mail('overseas')" class="px-5 py-3 bg-cyan-600 text-white rounded-lg font-bold">Send Web PO Link</button></div></div>
+                    ${d.__reorder_from_ecount ? `<div class="mb-4 rounded-xl border border-cyan-200 bg-cyan-50 px-5 py-4 text-cyan-900"><div class="font-black"><i class="fa-solid fa-rotate mr-2"></i>이카운트 구매요청번호 ${esc(d.__reorder_from_ecount)}에서 불러온 해외용 새 PO입니다.</div><div class="text-sm mt-1">기존 이력은 변경되지 않습니다. 수량·단가·통화·납기일을 확인하고 품목을 추가하거나 삭제한 뒤 저장 또는 메일 발송을 진행하세요.</div></div>` : (d.__reorder_from_saved ? `<div class="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-5 py-4 text-purple-900"><div class="font-black"><i class="fa-solid fa-copy mr-2"></i>기존 ERP 발주서 ${esc(d.__reorder_from_saved)}에서 복사한 해외용 새 PO입니다.</div><div class="text-sm mt-1">원본 이력은 변경되지 않습니다. PO 번호와 발주일자는 새로 생성되었으며, 수량·단가·통화·품목을 수정한 뒤 새 PO로 저장하거나 발송하세요.</div></div>` : '')}
                     <div class="bg-white rounded-2xl shadow p-6">
                         <div class="grid md:grid-cols-6 gap-4 mb-6"><div><label class="block text-sm font-bold text-slate-600 mb-2">PO No.</label><input id="exp_po_no" class="input-box" value="${attr(d.po_no)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Date</label><input id="exp_po_date" type="date" class="input-box" value="${attr(d.po_date)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Project</label><input id="exp_project_name" class="input-box" value="${attr(d.project_name || d.project || '')}" placeholder="Project name"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Currency</label><select id="exp_currency" class="input-box" onchange="po2_calc('overseas')">${['USD','EUR','JPY','CNY','KRW'].map(c => `<option ${c === (d.currency || 'USD') ? 'selected' : ''}>${c}</option>`).join('')}</select></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Incoterms</label><input id="exp_incoterms" class="input-box" value="${attr(d.incoterms)}"></div><div><label class="block text-sm font-bold text-slate-600 mb-2">Delivery Request</label><input id="exp_delivery_date" type="date" class="input-box" value="${attr(d.delivery_date)}"></div></div>
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
