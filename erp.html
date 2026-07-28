@@ -1770,6 +1770,61 @@ Please review quantity, unit price, currency, delivery date and items before iss
             </div>`;
         }
 
+        async function po2_functionErrorMessage(error, fallback){
+            let message = '';
+            try {
+                const response = error && error.context;
+                if (response && typeof response.clone === 'function') {
+                    const cloned = response.clone();
+                    try {
+                        const payload = await cloned.json();
+                        message = payload && (payload.error || payload.message || payload.msg) || '';
+                    } catch(e) {
+                        try { message = (await response.clone().text()).trim(); } catch(e2) {}
+                    }
+                    if (!message && response.status) message = `Edge Function HTTP ${response.status}`;
+                }
+            } catch(e) {}
+            if (!message && error) message = error.message || String(error);
+            if (!message || /non-2xx status code/i.test(message)) message = fallback || 'Edge Function 실행 실패';
+            return message;
+        }
+
+        async function po2_refreshFunctionSession(client){
+            if (!client || !client.auth) return;
+            try {
+                if (typeof client.auth.getSession === 'function') {
+                    const { data } = await client.auth.getSession();
+                    const session = data && data.session;
+                    const expiresSoon = session && session.expires_at && (session.expires_at * 1000 - Date.now() < 120000);
+                    if ((!session || expiresSoon) && typeof client.auth.refreshSession === 'function') {
+                        await client.auth.refreshSession();
+                    }
+                }
+            } catch(e) {
+                console.warn('Supabase 세션 갱신 확인 실패:', e);
+            }
+        }
+
+        async function po2_invokeEdgeFunction(client, functionName, body, fallbackMessage){
+            await po2_refreshFunctionSession(client);
+            let result = await client.functions.invoke(functionName, { body });
+            let status = result && result.error && result.error.context ? result.error.context.status : 0;
+
+            // 로그인 토큰이 만료된 경우 한 번 갱신한 뒤 재시도합니다.
+            if (result && result.error && (status === 401 || status === 403) && client.auth && typeof client.auth.refreshSession === 'function') {
+                try {
+                    await client.auth.refreshSession();
+                    result = await client.functions.invoke(functionName, { body });
+                } catch(e) {}
+            }
+
+            if (result && result.error) {
+                throw new Error(await po2_functionErrorMessage(result.error, fallbackMessage));
+            }
+            return result ? result.data : null;
+        }
+
         async function po2_createPublicPoLink(type, d){
             const client = getClient();
             if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
@@ -1777,7 +1832,7 @@ Please review quantity, unit price, currency, delivery date and items before iss
             }
 
             // 국내용 발주서도 USD/EUR/JPY/CNY를 사용할 수 있으므로
-            // 공개 링크 저장 시 통화와 통화별 VAT 계산 결과를 명시적으로 함께 저장합니다.
+            // 공개 링크 저장 시 통화와 통화별 VAT 계산 결과를 발주서 데이터 안에 저장합니다.
             const normalizedCurrency = po2_currencyCode(
                 d && d.currency ? d.currency : (type === 'overseas' ? 'USD' : 'KRW')
             );
@@ -1785,6 +1840,11 @@ Please review quantity, unit price, currency, delivery date and items before iss
                 type,
                 currency: normalizedCurrency
             });
+
+            // 화면 제어용 임시값은 Edge Function으로 보내지 않습니다.
+            delete publicPo.__is_new_record;
+            delete publicPo.__reorder_from_ecount;
+            delete publicPo.__reorder_from_saved;
 
             if (type === 'domestic') {
                 const amounts = po2_domesticAmounts(publicPo);
@@ -1794,10 +1854,14 @@ Please review quantity, unit price, currency, delivery date and items before iss
                 publicPo.vat_label = amounts.vatLabel;
             }
 
-            const { data, error } = await client.functions.invoke('create-po-link', {
-                body: { type, currency: normalizedCurrency, po: publicPo }
-            });
-            if (error) throw error;
+            // 배포되어 있는 create-po-link 함수의 기존 API 형식(type, po)을 그대로 사용합니다.
+            // currency는 publicPo 내부에 포함하여 기존 Edge Function과 호환되게 전송합니다.
+            const data = await po2_invokeEdgeFunction(
+                client,
+                'create-po-link',
+                { type, po: publicPo },
+                '발주서 웹 링크 생성에 실패했습니다. 로그인 상태와 Edge Function 설정을 확인해 주세요.'
+            );
             if (!data || data.ok !== true || !data.url) {
                 throw new Error((data && data.error) ? data.error : '발주서 웹 링크 생성 실패');
             }
@@ -1807,13 +1871,13 @@ Please review quantity, unit price, currency, delivery date and items before iss
             try {
                 const url = new URL(data.url, window.location.href);
                 url.searchParams.set('currency', normalizedCurrency);
-                url.searchParams.set('pv', '20260727-currency-v2');
+                url.searchParams.set('pv', '20260728-edge-fix-v1');
                 data.url = url.toString();
             } catch (e) {
                 const sep = String(data.url).includes('?') ? '&' : '?';
                 data.url = String(data.url) + sep
                     + 'currency=' + encodeURIComponent(normalizedCurrency)
-                    + '&pv=20260727-currency-v2';
+                    + '&pv=20260728-edge-fix-v1';
             }
             return data;
         }
@@ -1933,16 +1997,18 @@ KOOKYHON LASER`;
                 subject = mail.subject;
 
                 const client = getClient();
-                const { data, error } = await client.functions.invoke('send-po-mail', {
-                    body: {
+                const data = await po2_invokeEdgeFunction(
+                    client,
+                    'send-po-mail',
+                    {
                         to: d.supplier_email,
                         subject: mail.subject,
                         text: mail.text,
                         html: mail.html
-                    }
-                });
+                    },
+                    '하이웍스 메일 발송에 실패했습니다. 로그인 상태와 메일 Edge Function 설정을 확인해 주세요.'
+                );
 
-                if (error) throw error;
                 if (!data || data.ok !== true) {
                     throw new Error((data && data.error) ? data.error : '메일 발송 실패');
                 }
