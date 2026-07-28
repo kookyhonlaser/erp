@@ -1770,104 +1770,6 @@ Please review quantity, unit price, currency, delivery date and items before iss
             </div>`;
         }
 
-        async function po2_functionErrorMessage(error, fallback){
-            let message = '';
-            try {
-                const response = error && error.context;
-                if (response && typeof response.clone === 'function') {
-                    const cloned = response.clone();
-                    try {
-                        const payload = await cloned.json();
-                        message = payload && (payload.error || payload.message || payload.msg) || '';
-                    } catch(e) {
-                        try { message = (await response.clone().text()).trim(); } catch(e2) {}
-                    }
-                    if (!message && response.status) message = `Edge Function HTTP ${response.status}`;
-                }
-            } catch(e) {}
-            if (!message && error) message = error.message || String(error);
-            if (!message || /non-2xx status code/i.test(message)) message = fallback || 'Edge Function 실행 실패';
-            return message;
-        }
-
-        async function po2_refreshFunctionSession(client){
-            if (!client || !client.auth) return;
-            try {
-                if (typeof client.auth.getSession === 'function') {
-                    const { data } = await client.auth.getSession();
-                    const session = data && data.session;
-                    const expiresSoon = session && session.expires_at && (session.expires_at * 1000 - Date.now() < 120000);
-                    if ((!session || expiresSoon) && typeof client.auth.refreshSession === 'function') {
-                        await client.auth.refreshSession();
-                    }
-                }
-            } catch(e) {
-                console.warn('Supabase 세션 갱신 확인 실패:', e);
-            }
-        }
-
-        async function po2_invokeEdgeFunction(client, functionName, body, fallbackMessage){
-            if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
-                throw new Error('Supabase 연결을 찾지 못했습니다.');
-            }
-
-            await po2_refreshFunctionSession(client);
-
-            // Supabase JS의 기본 호출 방식을 사용합니다.
-            // 브라우저에서 region 옵션을 추가하면 CORS 사전 요청이 막혀
-            // "Failed to send a request to the Edge Function" 오류가 발생할 수 있습니다.
-            let result = await client.functions.invoke(functionName, { body });
-            let status = result && result.error && result.error.context ? Number(result.error.context.status || 0) : 0;
-
-            // 로그인 토큰이 만료됐을 때 한 번 갱신 후 재시도합니다.
-            if (result && result.error && (status === 401 || status === 403)
-                && client.auth && typeof client.auth.refreshSession === 'function') {
-                try {
-                    await client.auth.refreshSession();
-                    result = await client.functions.invoke(functionName, { body });
-                } catch(e) {}
-            }
-
-            if (result && result.error) {
-                const message = await po2_functionErrorMessage(result.error, fallbackMessage);
-                throw new Error(message);
-            }
-            return result ? result.data : null;
-        }
-
-        function po2_openMailApp(to, subject, body){
-            const mailto = 'mailto:' + encodeURIComponent(String(to || '').trim())
-                + '?subject=' + encodeURIComponent(String(subject || ''))
-                + '&body=' + encodeURIComponent(String(body || ''));
-
-            try {
-                const a = document.createElement('a');
-                a.href = mailto;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => a.remove(), 500);
-                return true;
-            } catch(e) {
-                try {
-                    window.location.href = mailto;
-                    return true;
-                } catch(e2) {
-                    return false;
-                }
-            }
-        }
-
-        async function po2_copyMailText(mail){
-            try {
-                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                    await navigator.clipboard.writeText(String(mail && mail.text || ''));
-                    return true;
-                }
-            } catch(e) {}
-            return false;
-        }
-
         async function po2_createPublicPoLink(type, d){
             const client = getClient();
             if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
@@ -1875,7 +1777,7 @@ Please review quantity, unit price, currency, delivery date and items before iss
             }
 
             // 국내용 발주서도 USD/EUR/JPY/CNY를 사용할 수 있으므로
-            // 공개 링크 저장 시 통화와 통화별 VAT 계산 결과를 발주서 데이터 안에 저장합니다.
+            // 공개 링크 저장 시 통화와 통화별 VAT 계산 결과를 명시적으로 함께 저장합니다.
             const normalizedCurrency = po2_currencyCode(
                 d && d.currency ? d.currency : (type === 'overseas' ? 'USD' : 'KRW')
             );
@@ -1883,11 +1785,6 @@ Please review quantity, unit price, currency, delivery date and items before iss
                 type,
                 currency: normalizedCurrency
             });
-
-            // 화면 제어용 임시값은 Edge Function으로 보내지 않습니다.
-            delete publicPo.__is_new_record;
-            delete publicPo.__reorder_from_ecount;
-            delete publicPo.__reorder_from_saved;
 
             if (type === 'domestic') {
                 const amounts = po2_domesticAmounts(publicPo);
@@ -1897,14 +1794,10 @@ Please review quantity, unit price, currency, delivery date and items before iss
                 publicPo.vat_label = amounts.vatLabel;
             }
 
-            // 배포되어 있는 create-po-link 함수의 기존 API 형식(type, po)을 그대로 사용합니다.
-            // currency는 publicPo 내부에 포함하여 기존 Edge Function과 호환되게 전송합니다.
-            const data = await po2_invokeEdgeFunction(
-                client,
-                'create-po-link',
-                { type, po: publicPo },
-                '발주서 웹 링크 생성에 실패했습니다. 로그인 상태와 Edge Function 설정을 확인해 주세요.'
-            );
+            const { data, error } = await client.functions.invoke('create-po-link', {
+                body: { type, currency: normalizedCurrency, po: publicPo }
+            });
+            if (error) throw error;
             if (!data || data.ok !== true || !data.url) {
                 throw new Error((data && data.error) ? data.error : '발주서 웹 링크 생성 실패');
             }
@@ -1914,13 +1807,13 @@ Please review quantity, unit price, currency, delivery date and items before iss
             try {
                 const url = new URL(data.url, window.location.href);
                 url.searchParams.set('currency', normalizedCurrency);
-                url.searchParams.set('pv', '20260728-edge-fix-v1');
+                url.searchParams.set('pv', '20260727-currency-v2');
                 data.url = url.toString();
             } catch (e) {
                 const sep = String(data.url).includes('?') ? '&' : '?';
                 data.url = String(data.url) + sep
                     + 'currency=' + encodeURIComponent(normalizedCurrency)
-                    + '&pv=20260728-edge-fix-v1';
+                    + '&pv=20260727-currency-v2';
             }
             return data;
         }
@@ -2029,7 +1922,6 @@ KOOKYHON LASER`;
 
             let publicLink = null;
             let subject = '';
-            let mail = null;
 
             try {
                 alert(type === 'domestic'
@@ -2037,22 +1929,20 @@ KOOKYHON LASER`;
                     : 'Creating PO webpage link and sending email. Please wait.');
 
                 publicLink = await po2_createPublicPoLink(type, d);
-                mail = po2_makeWebLinkMail(type, d, publicLink.url);
+                const mail = po2_makeWebLinkMail(type, d, publicLink.url);
                 subject = mail.subject;
 
                 const client = getClient();
-                const data = await po2_invokeEdgeFunction(
-                    client,
-                    'send-po-mail',
-                    {
+                const { data, error } = await client.functions.invoke('send-po-mail', {
+                    body: {
                         to: d.supplier_email,
                         subject: mail.subject,
                         text: mail.text,
                         html: mail.html
-                    },
-                    '하이웍스 메일 발송에 실패했습니다. 로그인 상태와 메일 Edge Function 설정을 확인해 주세요.'
-                );
+                    }
+                });
 
+                if (error) throw error;
                 if (!data || data.ok !== true) {
                     throw new Error((data && data.error) ? data.error : '메일 발송 실패');
                 }
@@ -2080,39 +1970,6 @@ KOOKYHON LASER`;
                     : `Hiworks email sent.\nPO link: ${publicLink.url}`);
             } catch (err) {
                 console.error(err);
-
-                // 하이웍스 SMTP가 Supabase 서버 IP를 차단하거나 Edge Function 메일 발송이
-                // 실패하더라도, 생성된 발주서 링크를 기본 메일 프로그램으로 바로 보냅니다.
-                if (publicLink && publicLink.url && mail) {
-                    const copied = await po2_copyMailText(mail);
-                    const opened = po2_openMailApp(d.supplier_email, mail.subject, mail.text);
-
-                    d.status = '메일작성창열림';
-                    d.public_url = publicLink.url;
-                    d.updated_at = new Date().toISOString();
-                    upsertHistory(d);
-
-                    po2_saveMailLog({
-                        ok: true,
-                        po_id: d.id,
-                        type,
-                        po_no: d.po_no,
-                        to: d.supplier_email,
-                        subject: mail.subject,
-                        attachmentName: '웹 발주서 링크',
-                        url: publicLink.url,
-                        messageId: 'MAILTO-FALLBACK',
-                        error: '서버 자동 발송 실패 후 기본 메일 작성창으로 전환: ' + (err.message || String(err))
-                    });
-                    po2_renderMailHistory();
-
-                    alert(type === 'domestic'
-                        ? '하이웍스 서버 자동 발송이 차단되어 기본 메일 작성창을 열었습니다.\n받는 사람, 제목, 발주서 링크가 입력되어 있으므로 메일 창에서 [보내기]를 눌러 주세요.'
-                            + (copied ? '\n\n메일 내용도 클립보드에 복사했습니다.' : '')
-                        : 'Automatic server sending was blocked, so the default email composer has been opened.\nPlease press Send in the email window.'
-                            + (copied ? '\n\nThe email text was also copied to the clipboard.' : ''));
-                    return;
-                }
 
                 po2_saveMailLog({
                     ok: false,
