@@ -1770,6 +1770,167 @@ Please review quantity, unit price, currency, delivery date and items before iss
             </div>`;
         }
 
+        async function po2_functionErrorMessage(error, fallback){
+            let message = '';
+            try {
+                const response = error && error.context;
+                if (response && typeof response.clone === 'function') {
+                    const cloned = response.clone();
+                    try {
+                        const payload = await cloned.json();
+                        message = payload && (payload.error || payload.message || payload.msg) || '';
+                    } catch(e) {
+                        try { message = (await response.clone().text()).trim(); } catch(e2) {}
+                    }
+                    if (!message && response.status) message = `Edge Function HTTP ${response.status}`;
+                }
+            } catch(e) {}
+            if (!message && error) message = error.message || String(error);
+            if (!message || /non-2xx status code/i.test(message)) message = fallback || 'Edge Function 실행 실패';
+            return message;
+        }
+
+        async function po2_refreshFunctionSession(client){
+            if (!client || !client.auth) return;
+            try {
+                if (typeof client.auth.getSession === 'function') {
+                    const { data } = await client.auth.getSession();
+                    const session = data && data.session;
+                    const expiresSoon = session && session.expires_at && (session.expires_at * 1000 - Date.now() < 120000);
+                    if ((!session || expiresSoon) && typeof client.auth.refreshSession === 'function') {
+                        await client.auth.refreshSession();
+                    }
+                }
+            } catch(e) {
+                console.warn('Supabase 세션 갱신 확인 실패:', e);
+            }
+        }
+
+        async function po2_directInvokeEdgeFunction(client, functionName, body){
+            const base = String(
+                (client && client.functionsUrl)
+                || (client && client.supabaseUrl ? String(client.supabaseUrl).replace(/\/$/, '') + '/functions/v1' : '')
+            ).replace(/\/$/, '');
+            if (!base) throw new Error('Edge Function 주소를 찾지 못했습니다.');
+
+            let session = null;
+            try {
+                if (client.auth && typeof client.auth.getSession === 'function') {
+                    const result = await client.auth.getSession();
+                    session = result && result.data ? result.data.session : null;
+                }
+            } catch(e) {}
+
+            const apiKey = String((client && client.supabaseKey) || '');
+            const accessToken = String((session && session.access_token) || apiKey || '');
+            const headers = { 'Content-Type': 'application/json' };
+            if (apiKey) headers.apikey = apiKey;
+            if (accessToken) headers.Authorization = 'Bearer ' + accessToken;
+
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timer = controller ? setTimeout(() => controller.abort(), 30000) : null;
+            try {
+                const response = await fetch(base + '/' + encodeURIComponent(functionName), {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(body || {}),
+                    signal: controller ? controller.signal : undefined
+                });
+                const raw = await response.text();
+                let data = null;
+                try { data = raw ? JSON.parse(raw) : null; } catch(e) { data = raw ? { error: raw } : null; }
+                if (!response.ok) {
+                    const message = data && (data.error || data.message || data.msg)
+                        ? (data.error || data.message || data.msg)
+                        : ('Edge Function HTTP ' + response.status);
+                    const err = new Error(message);
+                    err.status = response.status;
+                    throw err;
+                }
+                return data;
+            } finally {
+                if (timer) clearTimeout(timer);
+            }
+        }
+
+        async function po2_invokeEdgeFunction(client, functionName, body, fallbackMessage){
+            if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
+                throw new Error('Supabase 연결을 찾지 못했습니다.');
+            }
+
+            await po2_refreshFunctionSession(client);
+            let result = null;
+            let invokeThrown = null;
+
+            try {
+                result = await client.functions.invoke(functionName, { body });
+            } catch(e) {
+                invokeThrown = e;
+            }
+
+            let status = result && result.error && result.error.context
+                ? Number(result.error.context.status || 0)
+                : Number(invokeThrown && invokeThrown.status || 0);
+
+            if ((result && result.error || invokeThrown) && (status === 401 || status === 403)
+                && client.auth && typeof client.auth.refreshSession === 'function') {
+                try {
+                    await client.auth.refreshSession();
+                    invokeThrown = null;
+                    result = await client.functions.invoke(functionName, { body });
+                } catch(e) {
+                    invokeThrown = e;
+                }
+            }
+
+            const invokeError = invokeThrown || (result && result.error) || null;
+            if (!invokeError) return result ? result.data : null;
+
+            const firstMessage = await po2_functionErrorMessage(invokeError, fallbackMessage);
+            const isNetworkFailure = /failed to send a request|failed to fetch|networkerror|network request|load failed|fetch failed/i.test(
+                String((invokeError && invokeError.message) || firstMessage || '')
+            );
+
+            // Supabase JS 호출이 브라우저/확장프로그램 영향으로 실패할 때 동일 함수를 직접 한 번 호출합니다.
+            if (isNetworkFailure) {
+                try {
+                    return await po2_directInvokeEdgeFunction(client, functionName, body);
+                } catch(directError) {
+                    const directMessage = directError && directError.message ? directError.message : String(directError);
+                    throw new Error(directMessage || firstMessage || fallbackMessage || 'Edge Function 실행 실패');
+                }
+            }
+
+            throw new Error(firstMessage || fallbackMessage || 'Edge Function 실행 실패');
+        }
+
+        function po2_openMailApp(to, subject, body){
+            const mailto = 'mailto:' + encodeURIComponent(String(to || '').trim())
+                + '?subject=' + encodeURIComponent(String(subject || ''))
+                + '&body=' + encodeURIComponent(String(body || ''));
+            try {
+                const a = document.createElement('a');
+                a.href = mailto;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => a.remove(), 500);
+                return true;
+            } catch(e) {
+                try { window.location.href = mailto; return true; } catch(e2) { return false; }
+            }
+        }
+
+        async function po2_copyMailText(mail){
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(String(mail && mail.text || ''));
+                    return true;
+                }
+            } catch(e) {}
+            return false;
+        }
+
         async function po2_createPublicPoLink(type, d){
             const client = getClient();
             if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
@@ -1777,7 +1938,7 @@ Please review quantity, unit price, currency, delivery date and items before iss
             }
 
             // 국내용 발주서도 USD/EUR/JPY/CNY를 사용할 수 있으므로
-            // 공개 링크 저장 시 통화와 통화별 VAT 계산 결과를 명시적으로 함께 저장합니다.
+            // 공개 링크 저장 시 통화와 통화별 VAT 계산 결과를 발주서 데이터 안에 저장합니다.
             const normalizedCurrency = po2_currencyCode(
                 d && d.currency ? d.currency : (type === 'overseas' ? 'USD' : 'KRW')
             );
@@ -1785,6 +1946,11 @@ Please review quantity, unit price, currency, delivery date and items before iss
                 type,
                 currency: normalizedCurrency
             });
+
+            // 화면 제어용 임시값은 Edge Function으로 보내지 않습니다.
+            delete publicPo.__is_new_record;
+            delete publicPo.__reorder_from_ecount;
+            delete publicPo.__reorder_from_saved;
 
             if (type === 'domestic') {
                 const amounts = po2_domesticAmounts(publicPo);
@@ -1794,10 +1960,14 @@ Please review quantity, unit price, currency, delivery date and items before iss
                 publicPo.vat_label = amounts.vatLabel;
             }
 
-            const { data, error } = await client.functions.invoke('create-po-link', {
-                body: { type, currency: normalizedCurrency, po: publicPo }
-            });
-            if (error) throw error;
+            // 배포되어 있는 create-po-link 함수의 기존 API 형식(type, po)을 그대로 사용합니다.
+            // currency는 publicPo 내부에 포함하여 기존 Edge Function과 호환되게 전송합니다.
+            const data = await po2_invokeEdgeFunction(
+                client,
+                'create-po-link',
+                { type, po: publicPo },
+                '발주서 웹 링크 생성에 실패했습니다. 로그인 상태와 Edge Function 설정을 확인해 주세요.'
+            );
             if (!data || data.ok !== true || !data.url) {
                 throw new Error((data && data.error) ? data.error : '발주서 웹 링크 생성 실패');
             }
@@ -1807,13 +1977,13 @@ Please review quantity, unit price, currency, delivery date and items before iss
             try {
                 const url = new URL(data.url, window.location.href);
                 url.searchParams.set('currency', normalizedCurrency);
-                url.searchParams.set('pv', '20260727-currency-v2');
+                url.searchParams.set('pv', '20260728-edge-mail-fix-v2');
                 data.url = url.toString();
             } catch (e) {
                 const sep = String(data.url).includes('?') ? '&' : '?';
                 data.url = String(data.url) + sep
                     + 'currency=' + encodeURIComponent(normalizedCurrency)
-                    + '&pv=20260727-currency-v2';
+                    + '&pv=20260728-edge-mail-fix-v2';
             }
             return data;
         }
@@ -1922,6 +2092,8 @@ KOOKYHON LASER`;
 
             let publicLink = null;
             let subject = '';
+            let mail = null;
+            let stage = 'link';
 
             try {
                 alert(type === 'domestic'
@@ -1929,20 +2101,23 @@ KOOKYHON LASER`;
                     : 'Creating PO webpage link and sending email. Please wait.');
 
                 publicLink = await po2_createPublicPoLink(type, d);
-                const mail = po2_makeWebLinkMail(type, d, publicLink.url);
+                mail = po2_makeWebLinkMail(type, d, publicLink.url);
                 subject = mail.subject;
+                stage = 'mail';
 
                 const client = getClient();
-                const { data, error } = await client.functions.invoke('send-po-mail', {
-                    body: {
+                const data = await po2_invokeEdgeFunction(
+                    client,
+                    'send-po-mail',
+                    {
                         to: d.supplier_email,
                         subject: mail.subject,
                         text: mail.text,
                         html: mail.html
-                    }
-                });
+                    },
+                    '하이웍스 메일 서버 자동 발송에 실패했습니다.'
+                );
 
-                if (error) throw error;
                 if (!data || data.ok !== true) {
                     throw new Error((data && data.error) ? data.error : '메일 발송 실패');
                 }
@@ -1970,6 +2145,43 @@ KOOKYHON LASER`;
                     : `Hiworks email sent.\nPO link: ${publicLink.url}`);
             } catch (err) {
                 console.error(err);
+                const errorMessage = err && err.message ? err.message : String(err);
+
+                // 링크 생성까지 성공했으나 메일 Edge Function만 막힌 경우에는
+                // 기본 메일 작성창을 열어 업무가 중단되지 않도록 합니다.
+                if (stage === 'mail' && publicLink && publicLink.url && mail) {
+                    const copied = await po2_copyMailText(mail);
+                    const opened = po2_openMailApp(d.supplier_email, mail.subject, mail.text);
+
+                    d.status = opened ? '메일작성창열림' : '메일수동발송필요';
+                    d.public_url = publicLink.url;
+                    d.updated_at = new Date().toISOString();
+                    upsertHistory(d);
+
+                    po2_saveMailLog({
+                        ok: opened,
+                        po_id: d.id,
+                        type,
+                        po_no: d.po_no,
+                        to: d.supplier_email,
+                        subject: mail.subject,
+                        attachmentName: '웹 발주서 링크',
+                        url: publicLink.url,
+                        messageId: opened ? 'MAILTO-FALLBACK' : '',
+                        error: '서버 자동 발송 실패: ' + errorMessage
+                    });
+                    po2_renderMailHistory();
+
+                    alert(type === 'domestic'
+                        ? (opened
+                            ? '하이웍스 서버 자동 발송이 차단되어 기본 메일 작성창을 열었습니다.\n받는 사람·제목·발주서 링크가 입력되어 있으므로 메일 창에서 [보내기]를 눌러 주세요.'
+                                + (copied ? '\n\n메일 내용도 클립보드에 복사했습니다.' : '')
+                            : '하이웍스 서버 자동 발송이 실패했습니다.\n발주서 링크를 복사하여 수동으로 발송해 주세요.\n\n' + publicLink.url)
+                        : (opened
+                            ? 'Automatic sending was blocked. The default email composer has been opened; please press Send.'
+                            : 'Automatic sending failed. Please send the PO link manually:\n' + publicLink.url));
+                    return;
+                }
 
                 po2_saveMailLog({
                     ok: false,
@@ -1980,11 +2192,13 @@ KOOKYHON LASER`;
                     subject,
                     attachmentName: '웹 발주서 링크',
                     url: publicLink ? publicLink.url : '',
-                    error: err.message || String(err)
+                    error: errorMessage
                 });
                 po2_renderMailHistory();
 
-                alert((type === 'domestic' ? '웹 발주서 링크 메일 발송 실패: ' : 'Web PO link email failed: ') + (err.message || err));
+                alert(type === 'domestic'
+                    ? '발주서 웹 링크 생성 실패: ' + errorMessage
+                    : 'Failed to create the web PO link: ' + errorMessage);
             }
         };
 
