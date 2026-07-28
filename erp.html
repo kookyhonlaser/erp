@@ -1806,40 +1806,66 @@ Please review quantity, unit price, currency, delivery date and items before iss
             }
         }
 
-        const PO2_EDGE_REGION = 'ap-northeast-2'; // Seoul: 하이웍스 SMTP 국가/IP 차단 가능성 최소화
-
         async function po2_invokeEdgeFunction(client, functionName, body, fallbackMessage){
+            if (!client || !client.functions || typeof client.functions.invoke !== 'function') {
+                throw new Error('Supabase 연결을 찾지 못했습니다.');
+            }
+
             await po2_refreshFunctionSession(client);
 
-            // Supabase Edge Function이 해외 리전에서 실행되면 하이웍스가
-            // "Your IP is not allowed"로 SMTP 인증을 차단할 수 있습니다.
-            // 모든 ERP Edge Function 호출을 서울 리전으로 고정합니다.
-            const invokeOptions = { body, region: PO2_EDGE_REGION };
-            let result = await client.functions.invoke(functionName, invokeOptions);
-            let status = result && result.error && result.error.context ? result.error.context.status : 0;
+            // Supabase JS의 기본 호출 방식을 사용합니다.
+            // 브라우저에서 region 옵션을 추가하면 CORS 사전 요청이 막혀
+            // "Failed to send a request to the Edge Function" 오류가 발생할 수 있습니다.
+            let result = await client.functions.invoke(functionName, { body });
+            let status = result && result.error && result.error.context ? Number(result.error.context.status || 0) : 0;
 
-            // 로그인 토큰이 만료된 경우 한 번 갱신한 뒤 같은 서울 리전으로 재시도합니다.
-            if (result && result.error && (status === 401 || status === 403) && client.auth && typeof client.auth.refreshSession === 'function') {
+            // 로그인 토큰이 만료됐을 때 한 번 갱신 후 재시도합니다.
+            if (result && result.error && (status === 401 || status === 403)
+                && client.auth && typeof client.auth.refreshSession === 'function') {
                 try {
                     await client.auth.refreshSession();
-                    result = await client.functions.invoke(functionName, invokeOptions);
+                    result = await client.functions.invoke(functionName, { body });
                 } catch(e) {}
             }
 
             if (result && result.error) {
                 const message = await po2_functionErrorMessage(result.error, fallbackMessage);
-                if (/your ip is not allowed|ip is not allowed|#5\.7\.1/i.test(message)) {
-                    throw new Error(
-                        '하이웍스가 Supabase 서버의 접속 IP를 차단했습니다.\n' +
-                        'ERP는 서울 리전으로 재호출하도록 수정되어 있습니다.\n' +
-                        '계속 실패하면 하이웍스 venic@kooky.co.kr 계정의 [메일 환경설정 > POP3/SMTP]에서 ' +
-                        '[사용 함] 및 [모든 국가 허용(주의)]을 설정하고 메일 전용 비밀번호를 확인해 주세요.\n\n' +
-                        '원본 오류: ' + message
-                    );
-                }
                 throw new Error(message);
             }
             return result ? result.data : null;
+        }
+
+        function po2_openMailApp(to, subject, body){
+            const mailto = 'mailto:' + encodeURIComponent(String(to || '').trim())
+                + '?subject=' + encodeURIComponent(String(subject || ''))
+                + '&body=' + encodeURIComponent(String(body || ''));
+
+            try {
+                const a = document.createElement('a');
+                a.href = mailto;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => a.remove(), 500);
+                return true;
+            } catch(e) {
+                try {
+                    window.location.href = mailto;
+                    return true;
+                } catch(e2) {
+                    return false;
+                }
+            }
+        }
+
+        async function po2_copyMailText(mail){
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(String(mail && mail.text || ''));
+                    return true;
+                }
+            } catch(e) {}
+            return false;
         }
 
         async function po2_createPublicPoLink(type, d){
@@ -2003,6 +2029,7 @@ KOOKYHON LASER`;
 
             let publicLink = null;
             let subject = '';
+            let mail = null;
 
             try {
                 alert(type === 'domestic'
@@ -2010,7 +2037,7 @@ KOOKYHON LASER`;
                     : 'Creating PO webpage link and sending email. Please wait.');
 
                 publicLink = await po2_createPublicPoLink(type, d);
-                const mail = po2_makeWebLinkMail(type, d, publicLink.url);
+                mail = po2_makeWebLinkMail(type, d, publicLink.url);
                 subject = mail.subject;
 
                 const client = getClient();
@@ -2053,6 +2080,39 @@ KOOKYHON LASER`;
                     : `Hiworks email sent.\nPO link: ${publicLink.url}`);
             } catch (err) {
                 console.error(err);
+
+                // 하이웍스 SMTP가 Supabase 서버 IP를 차단하거나 Edge Function 메일 발송이
+                // 실패하더라도, 생성된 발주서 링크를 기본 메일 프로그램으로 바로 보냅니다.
+                if (publicLink && publicLink.url && mail) {
+                    const copied = await po2_copyMailText(mail);
+                    const opened = po2_openMailApp(d.supplier_email, mail.subject, mail.text);
+
+                    d.status = '메일작성창열림';
+                    d.public_url = publicLink.url;
+                    d.updated_at = new Date().toISOString();
+                    upsertHistory(d);
+
+                    po2_saveMailLog({
+                        ok: true,
+                        po_id: d.id,
+                        type,
+                        po_no: d.po_no,
+                        to: d.supplier_email,
+                        subject: mail.subject,
+                        attachmentName: '웹 발주서 링크',
+                        url: publicLink.url,
+                        messageId: 'MAILTO-FALLBACK',
+                        error: '서버 자동 발송 실패 후 기본 메일 작성창으로 전환: ' + (err.message || String(err))
+                    });
+                    po2_renderMailHistory();
+
+                    alert(type === 'domestic'
+                        ? '하이웍스 서버 자동 발송이 차단되어 기본 메일 작성창을 열었습니다.\n받는 사람, 제목, 발주서 링크가 입력되어 있으므로 메일 창에서 [보내기]를 눌러 주세요.'
+                            + (copied ? '\n\n메일 내용도 클립보드에 복사했습니다.' : '')
+                        : 'Automatic server sending was blocked, so the default email composer has been opened.\nPlease press Send in the email window.'
+                            + (copied ? '\n\nThe email text was also copied to the clipboard.' : ''));
+                    return;
+                }
 
                 po2_saveMailLog({
                     ok: false,
