@@ -1977,13 +1977,17 @@ Please review quantity, unit price, currency, delivery date and items before iss
             try {
                 const url = new URL(data.url, window.location.href);
                 url.searchParams.set('currency', normalizedCurrency);
-                url.searchParams.set('pv', '20260728-edge-mail-fix-v2');
+                url.searchParams.set('po_currency', normalizedCurrency);
+                url.searchParams.set('po_type', type);
+                url.searchParams.set('pv', '20260729-currency-v3');
                 data.url = url.toString();
             } catch (e) {
                 const sep = String(data.url).includes('?') ? '&' : '?';
                 data.url = String(data.url) + sep
                     + 'currency=' + encodeURIComponent(normalizedCurrency)
-                    + '&pv=20260728-edge-mail-fix-v2';
+                    + '&po_currency=' + encodeURIComponent(normalizedCurrency)
+                    + '&po_type=' + encodeURIComponent(type)
+                    + '&pv=20260729-currency-v3';
             }
             return data;
         }
