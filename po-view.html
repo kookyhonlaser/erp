@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Purchase Order Viewer - Stamp Image</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Purchase Order Viewer - Currency Fix v2</title>
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; background: #e5e7eb; color: #111827; font-family: "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif; }
@@ -45,6 +48,21 @@
 
     function esc(v) { return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
     function num(v) { return Number(v || 0).toLocaleString("ko-KR"); }
+    function currencyCode(v){ const c=String(v||"KRW").toUpperCase(); return ["KRW","USD","EUR","JPY","CNY"].includes(c)?c:"KRW"; }
+    function currencyAmount(currency, amount){ const c=currencyCode(currency); return c==="KRW" ? "₩ "+num(amount) : c+" "+num(amount); }
+    function domesticAmountTitle(currency, amount){ const c=currencyCode(currency); return c==="KRW" ? moneyKo(amount)+" 원 정" : c+" "+num(amount); }
+    function domesticAmounts(d){
+      const data=d||{};
+      const currency=currencyCode(data.currency||"KRW");
+      const itemSubtotal=(Array.isArray(data.items)?data.items:[]).reduce((sum,item)=>{
+        const amount=item&&item.amount!==undefined?Number(item.amount||0):Number(item&&item.qty||0)*Number(item&&item.price||0);
+        return sum+amount;
+      },0);
+      const hasSubtotal=data.subtotal!==undefined&&data.subtotal!==null&&data.subtotal!=="";
+      const subtotal=hasSubtotal?Number(data.subtotal||0):itemSubtotal;
+      const vat=currency==="KRW"?Math.round(subtotal*0.1*100)/100:0;
+      return {currency,subtotal,vat,total:subtotal+vat,vatLabel:currency==="KRW"?"VAT포함":"VAT 미적용"};
+    }
     function dateKo(v){ const m=String(v||"").match(/^(\d{4})-(\d{2})-(\d{2})/); return m?`${m[1]}년 ${m[2]}월 ${m[3]}일`:esc(v); }
     function dateEn(v){ const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; const m=String(v||"").match(/^(\d{4})-(\d{2})-(\d{2})/); return m?`${m[3]}-${months[Number(m[2])-1]}-${m[1]}`:esc(v); }
     function moneyKo(n){ n=Math.floor(Number(n||0)); if(!n)return"영"; const nums=["","일","이","삼","사","오","육","칠","팔","구"], pos=["","십","백","천"], units=["","만","억","조"]; function part(x){let out="",str=String(x).padStart(4,"0"); for(let i=0;i<4;i++){const d=Number(str[i]); if(!d)continue; const p=3-i; out+=(d===1&&p>0?"":nums[d])+pos[p];} return out;} const groups=[]; while(n>0){groups.push(n%10000); n=Math.floor(n/10000);} let out=""; for(let i=groups.length-1;i>=0;i--) if(groups[i]) out+=part(groups[i])+units[i]; return out; }
@@ -66,6 +84,8 @@
     function rowsOverseas(items){ const rows=[...(items||[])]; while(rows.length<7) rows.push({no:rows.length+1,name:"",spec:"",qty:"",price:"",amount:""}); return rows.map(i=>`<tr><td class="center">${i.name?esc(i.no):"&nbsp;"}</td><td class="item-data">${esc(i.spec||"")}</td><td class="item-data">${esc(i.name||"")}</td><td class="center item-data">${i.name?"EA":""}</td><td class="num item-data">${i.name?num(i.price):""}</td><td class="center item-data">${i.name?esc(i.qty):""}</td><td class="num item-data">${i.name?num(i.amount):""}</td></tr>`).join(""); }
 
     function renderDomestic(d) {
+      const amounts = domesticAmounts(d);
+      const currency = amounts.currency;
       const supplierFax = d.supplier_fax || d.fax || "";
       const buyerFax = d.buyer_fax || "031-355-3129";
       const invoiceManager = d.invoice_manager || d.writer || "";
@@ -137,8 +157,8 @@
 
         <table style="font-size:18px; font-weight:900; margin-bottom:6px;">
           <tr>
-            <td style="border:2px solid #111; padding:5px 12px;">금 액 : ${moneyKo(d.total)} 원 정</td>
-            <td style="border:2px solid #111; padding:5px 12px; text-align:right;">( \\: ${num(d.total)} ) / VAT포함</td>
+            <td style="border:2px solid #111; padding:5px 12px;">금 액 : ${domesticAmountTitle(currency, amounts.total)}</td>
+            <td style="border:2px solid #111; padding:5px 12px; text-align:right;">( ${currencyAmount(currency, amounts.total)} ) / ${amounts.vatLabel}</td>
           </tr>
         </table>
 
@@ -149,8 +169,8 @@
               <th style="width:240px; font-size:16px; padding:6px 4px;">품목</th>
               <th style="font-size:16px; padding:6px 4px;">규격</th>
               <th style="width:54px; font-size:16px; padding:6px 4px;">수량</th>
-              <th style="width:96px; font-size:16px; padding:6px 4px;">단가</th>
-              <th style="width:118px; font-size:16px; padding:6px 4px;">금액</th>
+              <th style="width:96px; font-size:16px; padding:6px 4px;">단가 (${esc(currency)})</th>
+              <th style="width:118px; font-size:16px; padding:6px 4px;">금액 (${esc(currency)})</th>
             </tr>
           </thead>
           <tbody>${rowsDomestic(d.items)}</tbody>
@@ -196,14 +216,37 @@ function renderOverseas(d){ return `<div class="page" style="font-family:Arial,s
     </div>`; }
 
     async function loadPO(){
-      const token=new URLSearchParams(location.search).get("token");
+      const params=new URLSearchParams(location.search);
+      const token=params.get("token");
+      const linkCurrency=params.get("currency") || params.get("po_currency") || params.get("cur");
+      const linkType=params.get("po_type");
       const app=document.getElementById("app");
       if(!token){ app.className="error"; app.textContent="발주서 토큰이 없습니다."; return; }
       try{
-        const res=await fetch(`${GET_PO_PUBLIC_URL}?token=${encodeURIComponent(token)}`);
+        const res=await fetch(`${GET_PO_PUBLIC_URL}?token=${encodeURIComponent(token)}&_=${Date.now()}`, { cache: "no-store" });
         const data=await res.json();
         if(!res.ok || !data.ok) throw new Error(data.error || "발주서를 불러오지 못했습니다.");
-        const po=data.po;
+        // get-po-public의 반환 구조가 버전별로 달라도 발주서 본문을 찾아 합칩니다.
+        const wrapper=(data && data.po && typeof data.po==="object") ? data.po : {};
+        const nested=(wrapper.po_data && typeof wrapper.po_data==="object") ? wrapper.po_data
+          : ((data.po_data && typeof data.po_data==="object") ? data.po_data : {});
+        const po=Object.assign({}, wrapper, nested);
+        delete po.po_data;
+        po.type=linkType || po.type || wrapper.po_type || data.type || data.po_type || "domestic";
+
+        // 링크 통화를 최우선으로 적용하고, DB의 여러 저장 위치도 모두 확인합니다.
+        po.currency=currencyCode(
+          linkCurrency || po.currency || nested.currency || wrapper.currency
+          || data.currency || data.po_currency
+          || (po.type==="overseas" ? "USD" : "KRW")
+        );
+        if(po.type!=="overseas"){
+          const amounts=domesticAmounts(po);
+          po.subtotal=amounts.subtotal;
+          po.vat=amounts.vat;
+          po.total=amounts.total;
+        }
+
         document.title=po.po_no || "Purchase Order";
         document.getElementById("poMeta").textContent=po.po_no ? " / " + po.po_no : "";
         app.className="";
